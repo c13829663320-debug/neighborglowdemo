@@ -20,6 +20,12 @@
 
     <!-- Content -->
     <div v-else-if="caseData" class="content">
+
+      <!-- Toast -->
+      <transition name="toast-fade">
+        <div v-if="toast.show" :class="['toast', `toast-${toast.type}`]">{{ toast.msg }}</div>
+      </transition>
+
       <!-- Risk + Status Banner -->
       <div class="status-banner">
         <span class="risk-badge" :class="'risk-' + caseData.risk_level">
@@ -111,7 +117,38 @@
           </div>
         </div>
       </div>
+
+      <!-- Danger Zone -->
+      <div class="danger-zone">
+        <button class="btn-delete-case" :disabled="deleteLoading" @click="showDeleteModal = true">
+          <template v-if="deleteLoading">
+            <div class="spinner-sm spinner-white"></div>
+            删除中...
+          </template>
+          <template v-else>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            删除此案例
+          </template>
+        </button>
+      </div>
     </div>
+
+    <!-- Delete Confirm Modal -->
+    <transition name="modal-fade">
+      <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+        <div class="modal-box">
+          <div class="modal-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3 class="modal-title">确认删除</h3>
+          <p class="modal-desc">确定删除案例「<strong>{{ caseData?.title }}</strong>」？删除后所有诊断、方案和跟进记录将无法恢复。</p>
+          <div class="modal-actions">
+            <button class="btn-modal-cancel" @click="showDeleteModal = false">取消</button>
+            <button class="btn-modal-confirm" :disabled="deleteLoading" @click="doDelete">确认删除</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -127,6 +164,30 @@ const caseId = route.params.id
 const loading = ref(true)
 const error = ref(null)
 const caseData = ref(null)
+const showDeleteModal = ref(false)
+const deleteLoading = ref(false)
+const toast = ref({ show: false, msg: '', type: 'success' })
+let toastTimer = null
+
+function showToast(msg, type = 'success') {
+  toast.value = { show: true, msg, type }
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toast.value.show = false }, 3000)
+}
+
+async function doDelete() {
+  deleteLoading.value = true
+  try {
+    await casesApi.remove(caseId)
+    showToast('案例已删除')
+    setTimeout(() => { router.push('/resident/my-requests') }, 800)
+  } catch (e) {
+    showToast('删除失败，请重试', 'error')
+  } finally {
+    deleteLoading.value = false
+    showDeleteModal.value = false
+  }
+}
 
 // --- Step definitions ---
 const steps = [
@@ -621,4 +682,82 @@ onMounted(fetchCase)
   color: #BDB5AA;
   cursor: default;
 }
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 1000; padding: 10px 24px; border-radius: 24px;
+  font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.12); white-space: nowrap;
+}
+.toast-success { background: #2D2A26; color: #fff; }
+.toast-error { background: #FF3B30; color: #fff; }
+.toast-fade-enter-active, .toast-fade-leave-active { transition: all 0.3s ease; }
+.toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+
+/* ---- Danger Zone ---- */
+.danger-zone {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #E0D8CE;
+}
+.btn-delete-case {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #FF3B30;
+  background: #fff;
+  color: #FF3B30;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn-delete-case:hover:not(:disabled) {
+  background: #FFF5F5;
+}
+.btn-delete-case:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner-sm {
+  width: 14px; height: 14px; border: 2px solid rgba(255,59,48,0.3);
+  border-top-color: #FF3B30; border-radius: 50%; animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+.spinner-white { border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; }
+
+/* ---- Modal ---- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.modal-box {
+  background: #fff; border-radius: 16px; padding: 28px 24px 20px;
+  width: 100%; max-width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  text-align: center;
+}
+.modal-icon { margin-bottom: 12px; }
+.modal-title { font-size: 17px; font-weight: 600; margin: 0 0 10px; }
+.modal-desc { font-size: 14px; color: #4A4540; line-height: 1.6; margin: 0 0 20px; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-modal-cancel {
+  flex: 1; padding: 10px; border: 1px solid #E0D8CE; border-radius: 10px;
+  background: #fff; font-size: 14px; color: #6B6560; cursor: pointer;
+}
+.btn-modal-cancel:hover { background: #F5F0E8; }
+.btn-modal-confirm {
+  flex: 1; padding: 10px; border: none; border-radius: 10px;
+  background: #FF3B30; color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+}
+.btn-modal-confirm:hover:not(:disabled) { background: #E0332A; }
+.btn-modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.modal-fade-enter-active, .modal-fade-leave-active { transition: all 0.25s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 </style>

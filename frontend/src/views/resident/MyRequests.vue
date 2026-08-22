@@ -1,5 +1,11 @@
 <template>
   <div class="page">
+
+    <!-- Toast -->
+    <transition name="toast-fade">
+      <div v-if="toast.show" :class="['toast', `toast-${toast.type}`]">{{ toast.msg }}</div>
+    </transition>
+
     <header class="top-bar">
       <button @click="$router.push('/resident')" class="btn-back">← 首页</button>
       <h1>我的案例</h1>
@@ -23,6 +29,14 @@
           <div class="case-header">
             <span class="risk-dot" :class="'dot-' + c.risk_level"></span>
             <span class="case-title">{{ c.title }}</span>
+            <button class="btn-del-icon" @click.stop="confirmDelete(c)" :disabled="deletingId === c.id" title="删除">
+              <template v-if="deletingId === c.id">
+                <div class="spinner-xs"></div>
+              </template>
+              <template v-else>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </template>
+            </button>
           </div>
           <p class="case-desc">{{ c.description?.slice(0, 80) }}{{ c.description?.length > 80 ? '...' : '' }}</p>
           <div class="case-meta">
@@ -37,6 +51,23 @@
         </div>
       </div>
     </main>
+
+    <!-- Delete Confirm Modal -->
+    <transition name="modal-fade">
+      <div v-if="deleteModal.show" class="modal-overlay" @click.self="deleteModal.show = false">
+        <div class="modal-box">
+          <div class="modal-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3 class="modal-title">确认删除</h3>
+          <p class="modal-desc">确定删除案例「<strong>{{ deleteModal.item?.title }}</strong>」？删除后无法恢复。</p>
+          <div class="modal-actions">
+            <button class="btn-modal-cancel" @click="deleteModal.show = false">取消</button>
+            <button class="btn-modal-confirm" :disabled="deletingId !== null" @click="doDelete">确认删除</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 <script setup>
@@ -46,6 +77,36 @@ import { cases } from '../../api'
 const casesList = ref([])
 const loading = ref(true)
 const activeFilter = ref('all')
+const deletingId = ref(null)
+const deleteModal = ref({ show: false, item: null })
+const toast = ref({ show: false, msg: '', type: 'success' })
+let toastTimer = null
+
+function showToast(msg, type = 'success') {
+  toast.value = { show: true, msg, type }
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toast.value.show = false }, 3000)
+}
+
+function confirmDelete(c) {
+  deleteModal.value = { show: true, item: c }
+}
+
+async function doDelete() {
+  const c = deleteModal.value.item
+  if (!c) return
+  deleteModal.value.show = false
+  deletingId.value = c.id
+  try {
+    await cases.remove(c.id)
+    casesList.value = casesList.value.filter(i => i.id !== c.id)
+    showToast('已删除')
+  } catch {
+    showToast('删除失败，请重试', 'error')
+  } finally {
+    deletingId.value = null
+  }
+}
 
 const filters = [
   { key: 'all', label: '全部' },
@@ -132,4 +193,59 @@ function getProgress(status) {
 
 .progress-bar { height: 3px; background: #f0f0f0; border-radius: 2px; overflow: hidden; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, #E8A33D, #4CAF50); border-radius: 2px; transition: width 0.3s; }
+
+/* Delete button */
+.btn-del-icon {
+  margin-left: auto; flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px;
+  border: 1px solid transparent; background: transparent; color: #B8AFA3;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+}
+.btn-del-icon:hover { border-color: #FF3B30; color: #FF3B30; background: #FFF5F5; }
+.btn-del-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.spinner-xs {
+  width: 12px; height: 12px; border: 2px solid rgba(255,59,48,0.3);
+  border-top-color: #FF3B30; border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 1000; padding: 10px 24px; border-radius: 24px;
+  font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.12); white-space: nowrap;
+}
+.toast-success { background: #2D2A26; color: #fff; }
+.toast-error { background: #FF3B30; color: #fff; }
+.toast-fade-enter-active, .toast-fade-leave-active { transition: all 0.3s ease; }
+.toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.modal-box {
+  background: #fff; border-radius: 16px; padding: 28px 24px 20px;
+  width: 100%; max-width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  text-align: center;
+}
+.modal-icon { margin-bottom: 12px; }
+.modal-title { font-size: 17px; font-weight: 600; margin: 0 0 10px; }
+.modal-desc { font-size: 14px; color: #4A4540; line-height: 1.6; margin: 0 0 20px; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-modal-cancel {
+  flex: 1; padding: 10px; border: 1px solid #E0D8CE; border-radius: 10px;
+  background: #fff; font-size: 14px; color: #6B6560; cursor: pointer;
+}
+.btn-modal-cancel:hover { background: #F5F0E8; }
+.btn-modal-confirm {
+  flex: 1; padding: 10px; border: none; border-radius: 10px;
+  background: #FF3B30; color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+}
+.btn-modal-confirm:hover:not(:disabled) { background: #E0332A; }
+.btn-modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+.modal-fade-enter-active, .modal-fade-leave-active { transition: all 0.25s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 </style>
