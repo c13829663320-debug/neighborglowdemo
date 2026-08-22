@@ -49,16 +49,21 @@
           :class="msg.role === 'user' ? 'msg-right' : 'msg-left'"
         >
           <div v-if="msg.role !== 'user'" class="avatar neighbor-avatar">&#x1F9D1;&#x200D;&#x1F91D;&#x200D;&#x1F9D1;</div>
-          <div class="bubble" :class="msg.role === 'user' ? 'bubble-user' : 'bubble-neighbor'">
-            {{ msg.content }}
+          <div class="bubble-col" :class="msg.role === 'user' ? 'bubble-col-right' : 'bubble-col-left'">
+            <div class="bubble" :class="msg.role === 'user' ? 'bubble-user' : 'bubble-neighbor'">
+              {{ msg.displayContent || msg.content }}
+            </div>
+            <span class="msg-time">{{ formatTime(msg.time) }}</span>
           </div>
           <div v-if="msg.role === 'user'" class="avatar user-avatar">&#x1F60A;</div>
         </div>
 
         <div v-if="sending" class="msg-row msg-left">
           <div class="avatar neighbor-avatar">&#x1F9D1;&#x200D;&#x1F91D;&#x200D;&#x1F9D1;</div>
-          <div class="bubble bubble-neighbor typing-indicator">
-            <span></span><span></span><span></span>
+          <div class="bubble-col bubble-col-left">
+            <div class="bubble bubble-neighbor typing-indicator">
+              <span></span><span></span><span></span>
+            </div>
           </div>
         </div>
       </div>
@@ -76,6 +81,22 @@
           placeholder="输入你想说的话..."
           class="chat-input"
         />
+        <button
+          class="btn-mic"
+          :class="{ recording: isRecording }"
+          @click="toggleVoice"
+          :disabled="sending"
+          type="button"
+          title="语音输入"
+        >
+          <svg v-if="!isRecording" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+            <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+          <span v-else class="recording-dot"></span>
+        </button>
         <button
           class="btn-send"
           :disabled="!inputText.trim() || sending"
@@ -131,9 +152,9 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { cases as casesApi } from '../../api'
+import { cases as casesApi, ai as aiApi } from '../../api'
 
 const route = useRoute()
 const caseId = route.params.id
@@ -149,6 +170,13 @@ const styleOptions = [
 const selectedStyle = ref('friendly')
 const loading = ref(false)
 
+// System prompt personality descriptions
+const stylePersonality = {
+  friendly: '态度温和，愿意沟通，能够理解对方的立场，说话友善',
+  defensive: '比较固执，容易辩解，不太愿意承认问题，但也有一定的道理，说话带刺但不失理性',
+  avoidant: '不太想谈，想尽快结束对话，回答简短敷衍，不太正面回应问题',
+}
+
 // Chat state
 const simId = ref(null)
 const conversation = ref([])
@@ -157,12 +185,16 @@ const sending = ref(false)
 const currentTip = ref('')
 const chatArea = ref(null)
 
+// Voice input state
+const isRecording = ref(false)
+let recognition = null
+
 // Result state
 const score = ref(0)
 const feedbackList = ref([])
 
 // Computed
-const circumference = 2 * Math.PI * 52 // ~326.73
+const circumference = 2 * Math.PI * 52
 const userMsgCount = computed(() => conversation.value.filter(m => m.role === 'user').length)
 
 function scrollToBottom() {
@@ -170,6 +202,74 @@ function scrollToBottom() {
     if (chatArea.value) {
       chatArea.value.scrollTop = chatArea.value.scrollHeight
     }
+  })
+}
+
+function formatTime(ts) {
+  if (!ts) return ''
+  const d = new Date(ts)
+  const h = d.getHours().toString().padStart(2, '0')
+  const m = d.getMinutes().toString().padStart(2, '0')
+  return `${h}:${m}`
+}
+
+function buildSystemPrompt() {
+  const personality = stylePersonality[selectedStyle.value] || stylePersonality.friendly
+  return `你正在模拟训练中扮演对方邻居的角色。你是一位住在隔壁的邻居，最近与对方因为邻里纠纷产生了矛盾。你的性格特点：${personality}。请用口语化的中文回复，就像真实的邻居对话一样自然。每次回复控制在50到100字之间，不要太长也不要太短。不要使用表情符号。`
+}
+
+function buildAiMessages() {
+  return conversation.value
+    .filter(m => m.role === 'user' || m.role === 'neighbor')
+    .map(m => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content,
+    }))
+}
+
+// Speech recognition
+function initSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+  if (!SR) return null
+  recognition = new SR()
+  recognition.lang = 'zh-CN'
+  recognition.continuous = true
+  recognition.interimResults = true
+  recognition.onresult = (event) => {
+    let transcript = ''
+    for (let i = 0; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript
+    }
+    inputText.value = transcript
+  }
+  recognition.onend = () => { isRecording.value = false }
+  recognition.onerror = () => { isRecording.value = false }
+  return recognition
+}
+
+function toggleVoice() {
+  if (!recognition) recognition = initSpeechRecognition()
+  if (!recognition) { alert('当前浏览器不支持语音识别'); return }
+  if (isRecording.value) { recognition.stop() }
+  else { recognition.start(); isRecording.value = true }
+}
+
+// Typing effect: reveal text character by character
+function typeMessage(msgObj, fullText) {
+  return new Promise((resolve) => {
+    msgObj.displayContent = ''
+    let i = 0
+    const interval = setInterval(() => {
+      if (i < fullText.length) {
+        msgObj.displayContent = fullText.slice(0, i + 1)
+        i++
+        scrollToBottom()
+      } else {
+        clearInterval(interval)
+        msgObj.displayContent = fullText
+        resolve()
+      }
+    }, 30)
   })
 }
 
@@ -182,7 +282,12 @@ async function startSimulation() {
     })
     const data = res.data
     simId.value = data.id
-    conversation.value = data.conversation || []
+    // Initialize conversation with timestamps for any initial messages
+    conversation.value = (data.conversation || []).map(m => ({
+      ...m,
+      time: m.time || Date.now(),
+      displayContent: m.content,
+    }))
     currentTip.value = ''
     phase.value = 'chat'
     scrollToBottom()
@@ -197,37 +302,84 @@ async function sendMessage() {
   const text = inputText.value.trim()
   if (!text || sending.value) return
 
+  // Stop voice recording if active
+  if (isRecording.value && recognition) {
+    recognition.stop()
+  }
+
   inputText.value = ''
   sending.value = true
   currentTip.value = ''
 
-  // Optimistically append user message
-  conversation.value.push({ role: 'user', content: text })
+  // Optimistically append user message with timestamp
+  const userMsg = { role: 'user', content: text, time: Date.now(), displayContent: text }
+  conversation.value.push(userMsg)
   scrollToBottom()
 
   try {
-    const res = await casesApi.sendSimMessage(caseId, simId.value, { content: text })
-    const data = res.data
-    // Replace conversation with server version (includes neighbor reply)
-    conversation.value = data.conversation || conversation.value
+    // Build AI request
+    const aiMessages = buildAiMessages()
+    const systemPrompt = buildSystemPrompt()
 
-    // Extract coach tip from the last neighbor message
-    const lastNeighbor = [...(data.conversation || [])].reverse().find(m => m.role === 'neighbor')
-    if (lastNeighbor && lastNeighbor.coach_tip) {
-      currentTip.value = lastNeighbor.coach_tip
+    const aiRes = await aiApi.chat({
+      messages: aiMessages,
+      system: systemPrompt,
+      context: `这是一个邻里纠纷模拟训练场景。用户正在练习与邻居沟通。邻居风格：${selectedStyle.value}。`,
+    })
+
+    const replyText = aiRes.data?.reply || aiRes.data?.content || aiRes.data?.message || ''
+
+    if (replyText) {
+      const neighborMsg = { role: 'neighbor', content: replyText, time: Date.now() }
+      conversation.value.push(neighborMsg)
+      scrollToBottom()
+
+      // Typing effect
+      await typeMessage(neighborMsg, replyText)
+    } else {
+      // Empty AI reply, fallback
+      throw new Error('Empty AI response')
     }
+  } catch (aiError) {
+    console.warn('AI chat failed, falling back to rule engine:', aiError)
+    // Fallback to original rule engine
+    try {
+      const res = await casesApi.sendSimMessage(caseId, simId.value, { content: text })
+      const data = res.data
+      // Replace conversation with server version (includes neighbor reply)
+      const serverConv = data.conversation || []
+      if (serverConv.length > 0) {
+        conversation.value = serverConv.map(m => ({
+          ...m,
+          time: m.time || Date.now(),
+          displayContent: m.content,
+        }))
+      }
 
-    scrollToBottom()
-  } catch (e) {
-    console.error('Failed to send message', e)
+      // Extract coach tip from the last neighbor message
+      const lastNeighbor = [...(serverConv || [])].reverse().find(m => m.role === 'neighbor')
+      if (lastNeighbor && lastNeighbor.coach_tip) {
+        currentTip.value = lastNeighbor.coach_tip
+      }
+
+      scrollToBottom()
+    } catch (fallbackError) {
+      console.error('Fallback also failed', fallbackError)
+      // Show an error message in the conversation
+      conversation.value.push({
+        role: 'neighbor',
+        content: '抱歉，对方暂时无法回复，请稍后再试。',
+        time: Date.now(),
+        displayContent: '抱歉，对方暂时无法回复，请稍后再试。',
+      })
+      scrollToBottom()
+    }
   } finally {
     sending.value = false
   }
 }
 
 function endSimulation() {
-  // Use the latest score/feedback from the simulation data
-  // The feedback may already be in the last API response
   phase.value = 'result'
 }
 
@@ -239,18 +391,14 @@ function restart() {
   inputText.value = ''
   score.value = 0
   feedbackList.value = []
+  if (isRecording.value && recognition) {
+    recognition.stop()
+  }
 }
 
-// When we transition to result phase, try to extract score & feedback
-// We watch phase changes to result
-import { watch } from 'vue'
 watch(phase, async (val) => {
   if (val === 'result') {
-    // Send a final "end" signal by checking if the API has feedback data
-    // The score/feedback should be extracted from the last sendSimMessage response
-    // We store them during sendMessage; if not available, show defaults
     if (!score.value) {
-      // Attempt to get final state by sending an empty end signal
       try {
         const res = await casesApi.sendSimMessage(caseId, simId.value, { content: '[END]' })
         const data = res.data
@@ -481,8 +629,21 @@ function parseFeedback(feedback) {
   background: #FDE8C8;
 }
 
-.bubble {
+/* Bubble with timestamp column */
+.bubble-col {
   max-width: 72%;
+  display: flex;
+  flex-direction: column;
+}
+.bubble-col-left {
+  align-items: flex-start;
+}
+.bubble-col-right {
+  align-items: flex-end;
+}
+
+.bubble {
+  max-width: 100%;
   padding: 10px 14px;
   border-radius: 16px;
   font-size: 15px;
@@ -499,6 +660,13 @@ function parseFeedback(feedback) {
   background: #E8A33D;
   color: #fff;
   border-bottom-right-radius: 4px;
+}
+
+.msg-time {
+  font-size: 11px;
+  color: #BFB8AE;
+  margin-top: 4px;
+  padding: 0 4px;
 }
 
 /* Typing indicator */
@@ -562,6 +730,7 @@ function parseFeedback(feedback) {
   background: #fff;
   border-top: 1px solid #E0D8CE;
   flex-shrink: 0;
+  align-items: center;
 }
 .chat-input {
   flex: 1;
@@ -573,6 +742,7 @@ function parseFeedback(feedback) {
   background: #FFF9F0;
   color: #2D2A26;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 .chat-input:focus {
   border-color: #E8A33D;
@@ -580,6 +750,46 @@ function parseFeedback(feedback) {
 .chat-input::placeholder {
   color: #BFB8AE;
 }
+
+/* Voice button */
+.btn-mic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #E0D8CE;
+  background: #fff;
+  color: #6B6560;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.btn-mic:hover {
+  border-color: #E8A33D;
+  color: #E8A33D;
+}
+.btn-mic:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-mic.recording {
+  border-color: #FF3B30;
+  color: #FF3B30;
+  animation: pulse 1.5s infinite;
+}
+.recording-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #FF3B30;
+  animation: blink 1s infinite;
+  display: inline-block;
+}
+@keyframes blink { 50% { opacity: 0.3; } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px rgba(255,59,48,0.15); } }
+
 .btn-send {
   background: #E8A33D;
   color: #fff;

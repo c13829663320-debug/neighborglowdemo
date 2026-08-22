@@ -89,6 +89,13 @@ class Diagnosis(Base):
     confidence = Column(Float, default=0.5)
     confirmed_by_user = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # Extended fields for LLM-enhanced diagnosis
+    summary = Column(String, default="")
+    insights = Column(JSON)
+    key_questions = Column(JSON)
+    symptoms = Column(JSON)
+    safety_risks = Column(JSON)
+    analysis_type = Column(String, default="rule")  # "rule" or "llm"
     case = relationship("Case")
 
 

@@ -37,8 +37,38 @@
         </div>
       </div>
 
-      <div v-if="!createdCase" class="input-area">
-        <textarea v-model="input" :placeholder="inputPlaceholder" rows="3" @keydown.enter.ctrl="submit" :disabled="loading"></textarea>
+      <div v-if="!createdCase" class="form-area">
+        <div class="input-with-voice">
+          <textarea v-model="input" :placeholder="inputPlaceholder" rows="3" @keydown.enter.ctrl="submit" :disabled="loading"></textarea>
+          <button class="btn-voice" :class="{ recording: isRecording }" @click="toggleVoice" type="button">
+            <svg v-if="!isRecording" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+              <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+            <span v-else class="recording-dot"></span>
+            {{ isRecording ? '录音中...' : '语音输入' }}
+          </button>
+        </div>
+
+        <div class="image-upload-section">
+          <div class="section-label">证据照片（可选）</div>
+          <div v-if="imagePreview" class="preview-wrap">
+            <img :src="imagePreview" class="preview-img" />
+            <button class="btn-remove-img" @click="removeImage" type="button">&#10005;</button>
+          </div>
+          <label v-else class="upload-trigger">
+            <input type="file" accept="image/*" capture="environment" @change="handleImageUpload" hidden />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B8AFA3" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <span>拍照或选择照片</span>
+          </label>
+        </div>
+
         <button @click="submit" :disabled="!input.trim() || loading" class="btn-send">发送</button>
       </div>
     </main>
@@ -48,6 +78,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { cases } from '../../api'
+import api from '../../api'
 
 const route = useRoute()
 const router = useRouter()
@@ -56,6 +87,63 @@ const messages = ref([])
 const loading = ref(false)
 const createdCase = ref(null)
 const chatArea = ref(null)
+
+// Voice input
+const isRecording = ref(false)
+let recognition = null
+
+function initSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+  if (!SR) return null
+  recognition = new SR()
+  recognition.lang = 'zh-CN'
+  recognition.continuous = true
+  recognition.interimResults = true
+  recognition.onresult = (event) => {
+    let transcript = ''
+    for (let i = 0; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript
+    }
+    input.value = transcript
+  }
+  recognition.onend = () => { isRecording.value = false }
+  recognition.onerror = () => { isRecording.value = false }
+  return recognition
+}
+
+function toggleVoice() {
+  if (!recognition) recognition = initSpeechRecognition()
+  if (!recognition) { alert('当前浏览器不支持语音识别'); return }
+  if (isRecording.value) { recognition.stop() }
+  else { recognition.start(); isRecording.value = true }
+}
+
+// Image upload
+const imageFile = ref(null)
+const imagePreview = ref(null)
+const imageAnalysis = ref(null)
+
+function handleImageUpload(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  imageFile.value = file
+  imagePreview.value = URL.createObjectURL(file)
+}
+
+function removeImage() {
+  imageFile.value = null
+  imagePreview.value = null
+  imageAnalysis.value = null
+}
+
+function getImageBase64() {
+  return new Promise((resolve) => {
+    if (!imageFile.value) { resolve(null); return }
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.readAsDataURL(imageFile.value)
+  })
+}
 
 const scenarioLabels = {
   noise: '深夜噪音', leak: '漏水纠纷', public_space: '公共区域',
@@ -105,6 +193,17 @@ async function submit() {
       category: route.query.scenario || null,
     })
     createdCase.value = res.data
+
+    // Image analysis after case creation (non-blocking)
+    if (imageFile.value) {
+      const base64 = await getImageBase64()
+      try {
+        const imgRes = await api.post(`/cases/${res.data.id}/analyze-image`, { image: base64, text: text })
+        imageAnalysis.value = imgRes.data.analysis
+      } catch (e) {
+        console.error('图片分析失败', e)
+      }
+    }
 
     messages.value.pop() // remove "正在分析"
     messages.value.push({
@@ -183,4 +282,42 @@ function categoryLabel(cat) {
 .btn-primary:hover { background: #D4922E; }
 .btn-secondary { background: none; border: 1px solid #E0D8CE; border-radius: 12px; padding: 12px 24px; font-size: 14px; color: #6B6560; cursor: pointer; }
 .btn-secondary:hover { border-color: #E8A33D; color: #E8A33D; }
+
+/* Form area layout */
+.form-area { display: flex; flex-direction: column; gap: 12px; }
+.form-area .btn-send { align-self: flex-end; }
+
+/* Voice input */
+.input-with-voice { position: relative; }
+.input-with-voice textarea { width: 100%; padding: 12px 16px; border: 1px solid #E0D8CE; border-radius: 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; transition: border-color 0.2s; box-sizing: border-box; }
+.input-with-voice textarea:focus { border-color: #E8A33D; }
+.btn-voice {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: 1px solid #E0D8CE; border-radius: 20px;
+  background: #fff; color: #6B6560; font-size: 13px; cursor: pointer;
+  transition: all 0.2s; margin-top: 8px;
+}
+.btn-voice:hover { border-color: #E8A33D; color: #E8A33D; }
+.btn-voice.recording { border-color: #FF3B30; color: #FF3B30; animation: pulse 1.5s infinite; }
+.recording-dot { width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; animation: blink 1s infinite; display: inline-block; }
+@keyframes blink { 50% { opacity: 0.3; } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px rgba(255,59,48,0.15); } }
+
+/* Image upload */
+.image-upload-section { margin-top: 4px; }
+.section-label { font-size: 14px; color: #6B6560; margin-bottom: 8px; }
+.preview-wrap { position: relative; display: inline-block; margin-top: 8px; }
+.preview-img { max-width: 100%; max-height: 200px; border-radius: 12px; border: 1px solid #E0D8CE; }
+.btn-remove-img {
+  position: absolute; top: -8px; right: -8px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #FF3B30; color: #fff; border: none;
+  font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.upload-trigger {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 24px; border: 2px dashed #E0D8CE; border-radius: 12px;
+  cursor: pointer; transition: all 0.2s; color: #B8AFA3; font-size: 14px;
+}
+.upload-trigger:hover { border-color: #E8A33D; color: #E8A33D; }
 </style>

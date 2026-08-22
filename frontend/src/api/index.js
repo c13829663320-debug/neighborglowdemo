@@ -36,6 +36,7 @@ export const cases = {
   update: (id, data) => api.put(`/cases/${id}`, data),
   remove: (id) => api.delete(`/cases/${id}`),
   diagnose: (id) => api.post(`/cases/${id}/diagnose`),
+  diagnoseLLM: (id) => api.post(`/cases/${id}/diagnose/llm`),
   confirmDiagnosis: (id, data) => api.post(`/cases/${id}/diagnose/confirm`, data),
   generatePlan: (id, data) => api.post(`/cases/${id}/plan`, data || {}),
   listPlans: (id) => api.get(`/cases/${id}/plans`),
@@ -80,4 +81,8 @@ export const community = {
   overview: (params) => api.get('/community/overview', { params }),
   trends: (params) => api.get('/community/trends', { params }),
 }
+export const ai = {
+  chat: (data) => api.post('/ai/chat', data),
+}
+
 export default api

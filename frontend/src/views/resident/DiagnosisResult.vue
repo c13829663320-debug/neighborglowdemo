@@ -22,6 +22,12 @@
 
     <!-- Content -->
     <div v-else-if="diagnosis" class="content">
+      <!-- AI Badge -->
+      <div v-if="diagnosis.analysis_type === 'llm'" class="ai-badge">
+        <span class="ai-badge-icon">✦</span>
+        <span>AI 智能分析</span>
+      </div>
+
       <!-- Summary Card -->
       <div class="summary-card">
         <div class="summary-header">
@@ -30,7 +36,7 @@
             {{ riskLabel }}
           </div>
         </div>
-        <p class="summary-text">{{ diagnosis.summary }}</p>
+        <p class="summary-text" :class="{ 'summary-text--large': diagnosis.analysis_type === 'llm' && diagnosis.summary }">{{ diagnosis.summary }}</p>
         
         <div class="confidence-section">
           <div class="confidence-label">
@@ -316,7 +322,7 @@
 
       <!-- Key Questions -->
       <div v-if="diagnosis.key_questions && diagnosis.key_questions.length > 0" class="questions-section">
-        <h3>值得思考的问题</h3>
+        <h3>需要进一步了解</h3>
         <div class="questions-list">
           <div 
             v-for="(question, index) in diagnosis.key_questions" 
@@ -411,8 +417,18 @@ async function loadDiagnosis() {
       // Use existing diagnosis
       diagnosis.value = caseData.diagnosis
     } else {
-      // Trigger new AI diagnosis
-      diagnosis.value = await casesApi.diagnose(caseId)
+      // Try LLM diagnosis first, fallback to standard diagnosis
+      try {
+        diagnosis.value = await casesApi.diagnoseLLM(caseId)
+      } catch (llmErr) {
+        const status = llmErr.response?.status
+        if (status === 400 || status === 500) {
+          // LLM unavailable, fallback to standard diagnosis
+          diagnosis.value = await casesApi.diagnose(caseId)
+        } else {
+          throw llmErr
+        }
+      }
     }
   } catch (err) {
     error.value = '加载诊断结果失败: ' + (err.message || '未知错误')
@@ -556,6 +572,30 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #E8A33D;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
+.ai-badge-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.summary-text--large {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.7;
 }
 
 .summary-card {

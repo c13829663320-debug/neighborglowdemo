@@ -22,6 +22,81 @@ from agent import (
 )
 from chat_ws import manager
 import uuid
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# AI Ping (OpenAI-compatible) LLM Client
+try:
+    from openai import OpenAI as _OpenAI
+    _ai_key = os.getenv("AI_API_KEY", "")
+    _ai_base = os.getenv("AI_BASE_URL", "https://aiping.cn/api/v1")
+    _ai_model = os.getenv("AI_MODEL", "deepseek-chat")
+    _ai_vision = os.getenv("AI_VISION_MODEL", _ai_model)
+    if _ai_key:
+        llm_client = _OpenAI(api_key=_ai_key, base_url=_ai_base)
+        LLM_ENABLED = True
+        print(f"[AI] LLM enabled: {_ai_base} / model={_ai_model}")
+    else:
+        llm_client = None
+        LLM_ENABLED = False
+        print("[AI] No AI_API_KEY found, LLM disabled (rule-engine only)")
+except Exception as _e:
+    llm_client = None
+    LLM_ENABLED = False
+    print(f"[AI] LLM init failed: {_e}, falling back to rule-engine")
+
+
+def llm_chat(system_prompt: str, user_message: str, temperature: float = 0.7, max_tokens: int = 2000) -> str:
+    """通用 LLM 对话调用（AI Ping OpenAI-compatible API）"""
+    if not llm_client:
+        raise RuntimeError("LLM not configured")
+    resp = llm_client.chat.completions.create(
+        model=_ai_model,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ],
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    return resp.choices[0].message.content or ""
+
+
+def llm_chat_messages(messages: list, temperature: float = 0.7, max_tokens: int = 2000) -> str:
+    """多轮对话 LLM 调用"""
+    if not llm_client:
+        raise RuntimeError("LLM not configured")
+    resp = llm_client.chat.completions.create(
+        model=_ai_model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    return resp.choices[0].message.content or ""
+
+
+def llm_vision(system_prompt: str, user_text: str, image_url: str, max_tokens: int = 1500) -> str:
+    """多模态 LLM 调用（图片+文字）"""
+    if not llm_client:
+        raise RuntimeError("LLM not configured")
+    resp = llm_client.chat.completions.create(
+        model=_ai_vision,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": user_text},
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                ],
+            },
+        ],
+        max_tokens=max_tokens,
+    )
+    return resp.choices[0].message.content or ""
+
 
 # Config
 SECRET_KEY = "neighborglow-demo-secret-key-2026"
@@ -300,7 +375,13 @@ def _case_to_dict(case: Case) -> Dict[str, Any]:
 # ================================================================================
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "service": "NeighborGlow API", "timestamp": datetime.utcnow().isoformat()}
+    return {
+        "status": "ok",
+        "service": "NeighborGlow API",
+        "timestamp": datetime.utcnow().isoformat(),
+        "llm_enabled": LLM_ENABLED,
+        "llm_model": _ai_model if LLM_ENABLED else None,
+    }
 
 
 # ================================================================================
@@ -596,23 +677,76 @@ def diagnose_case(case_id: int, db: Session = Depends(get_db), current_user: Use
         raise HTTPException(status_code=404, detail="案件不存在")
     if current_user.role == "resident" and case.resident_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权操作此案件")
+
     description = case.description or case.title or ""
-    analysis = analyze_context(description)
+
+    # 优先使用 LLM 诊断
+    use_llm = False
+    if LLM_ENABLED:
+        try:
+            rule_result = analyze_context(description)  # 规则引擎兜底
+            system = """你是邻里纠纷调解平台的AI诊断专家。请深入分析用户描述的邻里纠纷问题。
+
+你需要返回一个完整的JSON分析报告，格式如下：
+{
+  "risk_level": "green 或 yellow 或 orange 或 red",
+  "summary": "一句话总结核心问题",
+  "facts": ["客观事实1", "客观事实2", "客观事实3"],
+  "assumptions": ["需要验证的假设1", "假设2"],
+  "emotions": ["涉及的情绪1", "情绪2"],
+  "needs": ["潜在需求1", "需求2"],
+  "insights": ["深层洞察1", "洞察2", "洞察3"],
+  "key_questions": ["需要进一步了解的问题1", "问题2"],
+  "safety_risks": ["安全风险（如有）"],
+  "confidence": 0.85
+}
+
+分析原则：
+1. risk_level 判断标准：green=轻微摩擦可自行解决, yellow=需要沟通可能影响关系, orange=持续困扰需介入, red=严重冲突有安全隐患
+2. 区分事实与假设
+3. 关注情绪背后的需求
+4. 只返回JSON，不要其他内容"""
+            result_text = llm_chat(system, description, temperature=0.5, max_tokens=2000)
+            import json as _json
+            clean = result_text.strip()
+            if clean.startswith("```"):
+                clean = clean.split("\n", 1)[-1] if "\n" in clean else clean[3:]
+            if clean.endswith("```"):
+                clean = clean[:-3]
+            clean = clean.strip()
+            analysis = _json.loads(clean)
+            analysis["symptoms"] = rule_result.get("symptoms", {})
+            if not analysis.get("safety_risks"):
+                analysis["safety_risks"] = rule_result.get("safety_risks", [])
+            use_llm = True
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[AI] LLM diagnosis failed, falling back to rule engine: {e}")
+            analysis = analyze_context(description)
+    else:
+        analysis = analyze_context(description)
+
     diagnosis = Diagnosis(
         case_id=case_id, facts=analysis.get("facts", []), assumptions=analysis.get("assumptions", []),
         emotions=analysis.get("emotions", []), needs=analysis.get("needs", []),
         risk_level=analysis.get("risk_level", "green"), confidence=analysis.get("confidence", 0.5),
         confirmed_by_user=False,
+        summary=analysis.get("summary", ""), insights=analysis.get("insights", []),
+        key_questions=analysis.get("key_questions", []),
+        symptoms=analysis.get("symptoms", []), safety_risks=analysis.get("safety_risks", []),
+        analysis_type="llm" if use_llm else "rule",
     )
     db.add(diagnosis)
     case.risk_level = analysis.get("risk_level", case.risk_level)
     symptoms = analysis.get("symptoms", {})
-    if symptoms.get("category") and symptoms["category"] != "other":
-        case.category = symptoms["category"]
-    if symptoms.get("frequency") and symptoms["frequency"] != "unknown":
-        case.frequency = symptoms["frequency"]
-    if symptoms.get("relationship") and symptoms["relationship"] != "unknown":
-        case.relationship_status = symptoms["relationship"]
+    if isinstance(symptoms, dict):
+        if symptoms.get("category") and symptoms["category"] != "other":
+            case.category = symptoms["category"]
+        if symptoms.get("frequency") and symptoms["frequency"] != "unknown":
+            case.frequency = symptoms["frequency"]
+        if symptoms.get("relationship") and symptoms["relationship"] != "unknown":
+            case.relationship_status = symptoms["relationship"]
     case.status = "diagnosed"
     case.updated_at = datetime.utcnow()
     db.commit()
@@ -624,6 +758,7 @@ def diagnose_case(case_id: int, db: Session = Depends(get_db), current_user: Use
         "confidence": diagnosis.confidence, "confirmed_by_user": diagnosis.confirmed_by_user,
         "summary": analysis.get("summary", ""), "insights": analysis.get("insights", []),
         "key_questions": analysis.get("key_questions", []),
+        "analysis_type": "llm" if use_llm else "rule",
     }
 
 
@@ -1232,3 +1367,193 @@ async def websocket_endpoint(websocket: WebSocket, group_id: str, token: str = Q
             await manager.send_to_group(group_id, data)
     except WebSocketDisconnect:
         manager.disconnect(websocket, group_id, user_id)
+
+
+# ================================================================================
+# 49. AI: Chat (LLM-powered conversation)
+# ================================================================================
+@app.post("/api/ai/chat")
+def ai_chat(data: dict, current_user: User = Depends(get_current_user)):
+    """通用 AI 对话接口（支持多轮对话）"""
+    if not LLM_ENABLED:
+        raise HTTPException(400, "AI 功能未启用，请配置 AI_API_KEY")
+
+    messages = data.get("messages", [])
+    system_prompt = data.get("system", "你是邻光社区纠纷调解平台的AI助手，专业、温暖、善于倾听。")
+    context = data.get("context", "")
+
+    full_messages = [{"role": "system", "content": system_prompt}]
+
+    # 添加案例上下文（如果有）
+    if context:
+        full_messages.append({"role": "system", "content": f"案例背景：{context}"})
+
+    # 添加历史消息
+    for msg in messages[-10:]:  # 最多保留最近10轮
+        full_messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+
+    try:
+        reply = llm_chat_messages(full_messages, temperature=0.7, max_tokens=1500)
+        return {"reply": reply, "model": _ai_model}
+    except Exception as e:
+        raise HTTPException(500, f"AI 调用失败: {str(e)}")
+
+
+# ================================================================================
+# 50. AI: Image Analysis (multimodal vision)
+# ================================================================================
+@app.post("/api/cases/{case_id}/analyze-image")
+def analyze_case_image(case_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """分析案例相关图片（多模态AI）"""
+    case = db.query(Case).filter(Case.id == case_id).first()
+    if not case:
+        raise HTTPException(404, "案例不存在")
+    if current_user.role == "resident" and case.resident_id != current_user.id:
+        raise HTTPException(403, "无权访问")
+
+    image_data = data.get("image")  # base64 data URL: data:image/jpeg;base64,...
+    user_text = data.get("text", "")
+
+    if not image_data:
+        raise HTTPException(400, "缺少图片数据")
+
+    if not LLM_ENABLED:
+        return {"analysis": "AI 功能未启用，图片已保存。", "model": None}
+
+    system = """你是邻里纠纷调解平台的AI图片分析助手。用户上传了一张与邻里纠纷相关的照片。
+请仔细观察照片内容，分析与纠纷相关的事实信息，返回JSON格式：
+{
+  "image_description": "照片内容的简要描述",
+  "image_facts": ["从照片中观察到的事实1", "事实2"],
+  "evidence_relevance": "高/中/低",
+  "suggestions": ["基于照片的建议1", "建议2"]
+}
+只返回JSON，不要其他内容。"""
+
+    try:
+        result = llm_vision(system, user_text or "请分析这张照片", image_data)
+        import json
+        clean = result.strip()
+        if clean.startswith("```"):
+            clean = clean.split("\n", 1)[-1] if "\n" in clean else clean[3:]
+        if clean.endswith("```"):
+            clean = clean[:-3]
+        clean = clean.strip()
+        try:
+            parsed = json.loads(clean)
+            return {"analysis": parsed, "raw": result, "model": _ai_vision}
+        except json.JSONDecodeError:
+            return {"analysis": result, "model": _ai_vision}
+    except Exception as e:
+        raise HTTPException(500, f"图片分析失败: {str(e)}")
+
+
+# ================================================================================
+# 51. AI: LLM-enhanced Diagnosis
+# ================================================================================
+@app.post("/api/cases/{case_id}/diagnose/llm")
+def diagnose_case_llm(case_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """LLM 增强的AI诊断（替代纯规则引擎）"""
+    case = db.query(Case).filter(Case.id == case_id).first()
+    if not case:
+        raise HTTPException(404, "案例不存在")
+    if current_user.role == "resident" and case.resident_id != current_user.id:
+        raise HTTPException(403, "无权访问")
+
+    if not LLM_ENABLED:
+        raise HTTPException(400, "AI 功能未启用")
+
+    # 规则引擎兜底
+    rule_result = analyze_context(case.description or "")
+
+    system = """你是邻里纠纷调解平台的AI诊断专家。请深入分析用户描述的邻里纠纷问题。
+
+你需要返回一个完整的JSON分析报告，格式如下：
+{
+  "risk_level": "green 或 yellow 或 orange 或 red",
+  "summary": "一句话总结核心问题",
+  "facts": ["客观事实1", "客观事实2", "客观事实3"],
+  "assumptions": ["需要验证的假设1", "假设2"],
+  "emotions": ["涉及的情绪1", "情绪2"],
+  "needs": ["潜在需求1", "需求2"],
+  "insights": ["深层洞察1", "洞察2", "洞察3"],
+  "key_questions": ["需要进一步了解的问题1", "问题2"],
+  "safety_risks": ["安全风险（如有）"],
+  "confidence": 0.85,
+  "recommendation": "初步建议方向"
+}
+
+分析原则：
+1. risk_level 判断标准：
+   - green：轻微摩擦，可自行解决
+   - yellow：需要沟通，可能影响关系
+   - orange：持续困扰，影响生活，需介入
+   - red：严重冲突，有安全隐患，需紧急介入
+2. 要区分事实与假设，标注需要验证的假设
+3. 关注情绪背后的需求，而非表面冲突
+4. 提出温暖且实用的建议
+
+只返回JSON，不要其他内容。"""
+
+    try:
+        result = llm_chat(system, case.description or "", temperature=0.5, max_tokens=2000)
+        import json
+        clean = result.strip()
+        if clean.startswith("```"):
+            clean = clean.split("\n", 1)[-1] if "\n" in clean else clean[3:]
+        if clean.endswith("```"):
+            clean = clean[:-3]
+        clean = clean.strip()
+        parsed = json.loads(clean)
+
+        # 合并规则引擎的安全风险检测
+        if "safety_risks" not in parsed or not parsed["safety_risks"]:
+            parsed["safety_risks"] = rule_result.get("safety_risks", [])
+        # 补充症状标签
+        parsed["symptoms"] = rule_result.get("symptoms", [])
+
+        # 保存诊断结果
+        diagnosis = Diagnosis(
+            case_id=case.id,
+            risk_level=parsed.get("risk_level", "yellow"),
+            summary=parsed.get("summary", ""),
+            facts=parsed.get("facts", []),
+            assumptions=parsed.get("assumptions", []),
+            emotions=parsed.get("emotions", []),
+            needs=parsed.get("needs", []),
+            insights=parsed.get("insights", []),
+            key_questions=parsed.get("key_questions", []),
+            symptoms=parsed.get("symptoms", []),
+            safety_risks=parsed.get("safety_risks", []),
+            confidence=parsed.get("confidence", 0.8),
+            analysis_type="llm",
+        )
+        db.add(diagnosis)
+        db.commit()
+        db.refresh(diagnosis)
+
+        return {
+            "id": diagnosis.id,
+            "case_id": case.id,
+            "risk_level": diagnosis.risk_level,
+            "summary": diagnosis.summary,
+            "facts": diagnosis.facts,
+            "assumptions": diagnosis.assumptions,
+            "emotions": diagnosis.emotions,
+            "needs": diagnosis.needs,
+            "insights": diagnosis.insights,
+            "key_questions": diagnosis.key_questions,
+            "safety_risks": diagnosis.safety_risks,
+            "confidence": diagnosis.confidence,
+            "analysis_type": "llm",
+            "model": _ai_model,
+        }
+    except Exception as e:
+        # LLM 失败时降级到规则引擎
+        import traceback
+        traceback.print_exc()
+        return {
+            "fallback": True,
+            "error": str(e),
+            "rule_result": rule_result,
+        }
