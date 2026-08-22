@@ -31,6 +31,11 @@ frontend/dist/
 # Environment
 .env
 .env.local
+.env.bak
+
+# Credential scripts (must never be committed)
+cred-helper.sh
+push_via_api.py
 
 # Logs
 *.log
