@@ -15,7 +15,12 @@
         <button type="submit" class="btn-primary" :disabled="loading">
           {{ loading ? '登录中...' : '登录' }}
         </button>
-        <p v-if="error" class="error">{{ error }}</p>
+        <transition name="shake">
+          <div v-if="error" class="error-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>{{ error }}</span>
+          </div>
+        </transition>
         <p class="link">还没有账号？<router-link to="/register">立即注册</router-link></p>
       </form>
     </div>
@@ -118,11 +123,38 @@ async function handleLogin() {
   background: #ccc;
   cursor: not-allowed;
 }
-.error {
-  color: #F44336;
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFF0F0;
+  border: 1px solid #FFD4D4;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  color: #D32F2F;
   font-size: 13px;
-  text-align: center;
-  margin-top: 12px;
+  font-weight: 500;
+}
+.error-box svg {
+  flex-shrink: 0;
+  color: #F44336;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+.shake-enter-active {
+  animation: shake 0.5s ease-in-out;
+}
+.shake-leave-active {
+  transition: opacity 0.3s ease;
+}
+.shake-leave-to {
+  opacity: 0;
 }
 .link {
   text-align: center;
