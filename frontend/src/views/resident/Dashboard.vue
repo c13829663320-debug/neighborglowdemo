@@ -28,7 +28,7 @@
           <p>还没有案例，从描述你遇到的问题开始</p>
         </div>
         <div v-else class="case-list">
-          <div v-for="c in cases" :key="c.id" class="case-card" :class="'risk-' + c.risk_level">
+          <div v-for="c in cases" :key="c.id" class="case-card clickable" :class="'risk-' + c.risk_level" @click="router.push('/resident/case/' + c.id)">
             <div class="case-header">
               <span class="risk-badge" :class="'risk-' + c.risk_level"></span>
               <span class="case-title">{{ c.title }}</span>
@@ -97,7 +97,9 @@ function logout() {
 .scenario-label { font-size: 13px; color: #2D2A26; }
 .my-cases h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
 .empty-state { text-align: center; padding: 32px; color: #9E9893; font-size: 14px; }
-.case-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid #4CAF50; }
+.case-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid #4CAF50; transition: transform 0.15s, box-shadow 0.15s; }
+.case-card.clickable { cursor: pointer; }
+.case-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 .case-card.risk-yellow { border-left-color: #FFC107; }
 .case-card.risk-orange { border-left-color: #FF9800; }
 .case-card.risk-red { border-left-color: #F44336; }
