@@ -204,6 +204,7 @@
           <span>你的数据受到加密保护</span>
         </div>
         <a class="privacy-link" href="javascript:void(0)" @click="$router.push('/resident/profile')">隐私政策</a>
+        <p class="slogan-text">邻里之光，让善意照进千万人家！</p>
         <p class="version-text">NeighborGlow v1.0.0</p>
       </section>
     </template>
@@ -1107,6 +1108,14 @@ onMounted(async () => {
 }
 .privacy-link:hover {
   text-decoration: underline;
+}
+.slogan-text {
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-title);
+  letter-spacing: 0.04em;
+  color: var(--ng-primary-deep);
+  opacity: 0.8;
+  margin-top: var(--ng-space-3);
 }
 .version-text {
   font-size: var(--ng-fs-small);

@@ -9,6 +9,7 @@
     </header>
     <main class="main-content">
       <section class="hero ng-card--hero">
+        <p class="hero-slogan">邻里之光，让善意照进千万人家！</p>
         <h2>邻里之间，有些话只是需要换一种方式说。</h2>
         <p>描述你遇到的问题，邻光会帮你理清情况、找到合适的表达，并陪你练习下一次沟通。</p>
         <button @click="$router.push('/resident/submit')" class="ng-btn ng-btn-primary ng-btn-block">开始梳理问题</button>
@@ -126,6 +127,7 @@ function selectScenario(s) {
 
 /* ---- 主视觉卡：琥珀渐变 + 深琥珀文字 ---- */
 .hero { border-radius: var(--ng-radius-card); padding: var(--ng-space-6); margin: var(--ng-space-4) 0 var(--ng-space-6); }
+.hero-slogan { font-size: var(--ng-fs-aux); font-weight: var(--ng-fw-title); letter-spacing: 0.08em; color: var(--ng-primary-deep); opacity: 0.85; margin-bottom: var(--ng-space-2); }
 .hero h2 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); margin-bottom: var(--ng-space-3); line-height: 1.4; }
 .hero p { font-size: var(--ng-fs-body); color: var(--ng-primary-deep); margin-bottom: var(--ng-space-5); line-height: 1.6; }
 

@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-card ng-fade-in">
       <h1 class="logo">🌟 邻光</h1>
-      <p class="subtitle">创建你的账号，加入社区</p>
+      <p class="subtitle">邻里之光，让善意照进千万人家！</p>
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label>用户名</label>

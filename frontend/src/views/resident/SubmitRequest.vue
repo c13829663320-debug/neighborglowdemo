@@ -183,7 +183,7 @@ const inputPlaceholder = ref('描述你遇到的邻里问题...')
 
 onMounted(() => {
   const scenario = route.query.scenario
-  let initialMsg = '你好，我是邻光。请描述你遇到的邻里问题，我会帮你分析情况。'
+  let initialMsg = '你好，我是邻光。邻里之光，让善意照进千万人家！请描述你遇到的邻里问题，我会帮你分析情况。'
   if (scenario && scenarioLabels[scenario]) {
     initialMsg = `你选择了「${scenarioLabels[scenario]}」场景。请详细描述一下发生了什么？`
     inputPlaceholder.value = `描述${scenarioLabels[scenario]}的具体情况...`

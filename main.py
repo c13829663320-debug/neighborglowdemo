@@ -1420,7 +1420,7 @@ def ai_chat(data: dict, current_user: User = Depends(get_current_user)):
         }
 
     messages = data.get("messages", [])
-    system_prompt = data.get("system", "你是邻光社区纠纷调解平台的AI助手，专业、温暖、善于倾听。")
+    system_prompt = data.get("system", "你是邻光社区纠纷调解平台的AI助手，专业、温暖、善于倾听。品牌口号：邻里之光，让善意照进千万人家！")
     context = data.get("context", "")
 
     full_messages = [{"role": "system", "content": system_prompt}]
@@ -1471,7 +1471,7 @@ def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
             reply = "已收到您的描述，正在为您创建案例..."
         else:
             summary = None
-            reply = "你好呀！我是邻光。能具体说说遇到了什么情况吗？比如发生了什么问题、大概什么时候、对你造成了什么影响。"
+            reply = "你好呀！我是邻光——邻里之光，让善意照进千万人家！能具体说说遇到了什么情况吗？比如发生了什么问题、大概什么时候、对你造成了什么影响。"
 
         return {
             "reply": reply,
@@ -1481,7 +1481,7 @@ def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
         }
 
     # LLM 模式：使用 LLM 分析对话意图
-    system = """你是邻光社区纠纷调解平台的AI助手「邻光」。你的任务是引导居民描述他们遇到的邻里纠纷问题，并在收集到足够信息后准备创建案例。
+    system = """你是邻光社区纠纷调解平台的AI助手「邻光」。品牌口号：邻里之光，让善意照进千万人家！你的任务是引导居民描述他们遇到的邻里纠纷问题，并在收集到足够信息后准备创建案例。
 
 你需要分析对话并判断当前状态：
 
