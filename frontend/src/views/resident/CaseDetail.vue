@@ -26,14 +26,18 @@
         <div v-if="toast.show" :class="['toast', `toast-${toast.type}`]">{{ toast.msg }}</div>
       </transition>
 
-      <!-- Risk + Status Banner -->
-      <div class="status-banner">
-        <span class="ng-risk-badge" :class="'ng-risk-' + caseData.risk_level">
-          {{ riskLabel(caseData.risk_level) }}
-        </span>
-        <span class="status-badge" :class="'status-' + caseData.status">
-          {{ statusLabel(caseData.status) }}
-        </span>
+      <!-- 品牌横幅 + 风险/状态（与首页视觉同风格） -->
+      <div class="status-banner ng-card--hero">
+        <p class="banner-brand">🌟 邻光｜邻里之光，让善意照进千万人家</p>
+        <div class="banner-badges">
+          <span class="ng-risk-badge" :class="'ng-risk-' + caseData.risk_level">
+            {{ riskLabel(caseData.risk_level) }}
+          </span>
+          <span class="status-badge" :class="'status-' + caseData.status">
+            {{ statusLabel(caseData.status) }}
+          </span>
+        </div>
+        <p v-if="caseData.created_at" class="banner-date">创建于 {{ formatDate(caseData.created_at) }}</p>
       </div>
 
       <!-- Case Info Card -->
@@ -287,6 +291,10 @@ function frequencyLabel(freq) {
   return map[freq] || freq
 }
 
+function formatDate(d) {
+  return d ? new Date(d).toLocaleDateString('zh-CN') : ''
+}
+
 // --- Fetch ---
 async function fetchCase() {
   loading.value = true
@@ -390,12 +398,30 @@ onMounted(fetchCase)
   padding: var(--ng-space-4) var(--ng-page-margin-mobile);
 }
 
-/* ---- 风险 + 状态横幅（风险徽章使用全局 .ng-risk-badge） ---- */
+/* ---- 品牌横幅（渐变底 + 品牌行 + 徽章） ---- */
 .status-banner {
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-space-4);
+  margin-bottom: var(--ng-space-4);
+}
+.banner-brand {
+  font-size: var(--ng-fs-small);
+  letter-spacing: 0.05em;
+  color: var(--ng-primary-deep);
+  opacity: 0.9;
+  margin: 0 0 var(--ng-space-3);
+}
+.banner-badges {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: var(--ng-space-4);
+  flex-wrap: wrap;
+  gap: var(--ng-space-2);
+}
+.banner-date {
+  font-size: var(--ng-fs-small);
+  color: var(--ng-primary-deep);
+  opacity: 0.7;
+  margin: var(--ng-space-2) 0 0;
 }
 .status-badge {
   display: inline-block;

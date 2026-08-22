@@ -12,6 +12,15 @@
       <span></span>
     </header>
     <main class="main-content">
+      <!-- 页面横幅（与首页次级入口同风格） -->
+      <section class="page-hero ng-card--hero">
+        <span class="page-hero-icon">📋</span>
+        <div class="page-hero-text">
+          <h2>待跟进的案例</h2>
+          <p>查看案例进展与反馈</p>
+        </div>
+        <span v-if="casesList.length" class="page-hero-count">{{ casesList.length }}</span>
+      </section>
       <!-- Filter tabs -->
       <div class="filter-tabs">
         <button v-for="f in filters" :key="f.key" :class="['tab', { active: activeFilter === f.key }]" @click="activeFilter = f.key">
@@ -168,6 +177,27 @@ function getProgress(status) {
 .btn-back:hover { color: var(--ng-primary); }
 .top-bar h1 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); margin: 0; }
 .main-content { padding: 0 var(--ng-page-margin-mobile) 40px; }
+
+/* ---- 页面横幅（渐变卡 + 图标底 + 数量角标） ---- */
+.page-hero {
+  display: flex; align-items: center; gap: var(--ng-space-3);
+  padding: var(--ng-space-4); margin-top: var(--ng-space-4);
+  border-radius: var(--ng-radius-card);
+}
+.page-hero-icon {
+  width: 48px; height: 48px; flex: none; border-radius: var(--ng-radius-btn);
+  background: var(--ng-bg-card); display: flex; align-items: center; justify-content: center;
+  font-size: 24px; box-shadow: var(--ng-shadow-card);
+}
+.page-hero-text { flex: 1; min-width: 0; }
+.page-hero-text h2 { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); margin: 0 0 2px; }
+.page-hero-text p { font-size: var(--ng-fs-aux); color: var(--ng-primary-deep); opacity: 0.75; margin: 0; }
+.page-hero-count {
+  flex: none; min-width: 26px; height: 26px; padding: 0 8px; border-radius: var(--ng-radius-pill);
+  background: var(--ng-gradient-btn); color: var(--ng-text-inverse);
+  font-size: var(--ng-fs-aux); font-weight: var(--ng-fw-title);
+  display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--ng-shadow-btn);
+}
 
 /* ---- 筛选标签 ---- */
 .filter-tabs { display: flex; gap: var(--ng-space-2); margin: var(--ng-space-4) 0; overflow-x: auto; padding-bottom: var(--ng-space-1); }

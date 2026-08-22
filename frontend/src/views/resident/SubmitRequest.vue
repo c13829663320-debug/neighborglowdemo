@@ -2,10 +2,18 @@
   <div class="submit-page ng-fade-in">
     <header class="top-bar">
       <button @click="$router.back()" class="btn-back">← 返回</button>
-      <h1>描述问题</h1>
+      <h1>梳理问题</h1>
       <span></span>
     </header>
     <main class="main-content">
+      <!-- 品牌横幅（参考首页视觉：品牌行 + 副标题） -->
+      <div class="chat-banner ng-card--hero">
+        <span class="banner-avatar">🌟</span>
+        <div class="banner-text">
+          <p class="banner-name">邻光小助手</p>
+          <p class="banner-sub">智能分析 · 专业引导 · 隐私保护</p>
+        </div>
+      </div>
       <div class="chat-area" ref="chatArea">
         <template v-for="(msg, i) in messages" :key="i">
           <div :class="['chat-bubble', msg.role]">
@@ -417,11 +425,33 @@ function categoryLabel(cat) {
 .top-bar h1 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); }
 .main-content { flex: 1; display: flex; flex-direction: column; padding: var(--ng-space-4) var(--ng-page-margin-mobile) var(--ng-space-5); }
 
+/* ---- 品牌横幅（与首页 hero 同风格） ---- */
+.chat-banner {
+  display: flex; align-items: center; gap: var(--ng-space-3);
+  padding: var(--ng-space-3) var(--ng-space-4);
+  border-radius: var(--ng-radius-card);
+  margin-bottom: var(--ng-space-3);
+}
+.banner-avatar {
+  width: 40px; height: 40px; flex: none; border-radius: 50%;
+  background: var(--ng-gradient-btn); display: flex; align-items: center; justify-content: center;
+  font-size: 20px; box-shadow: var(--ng-shadow-btn);
+}
+.banner-text { flex: 1; min-width: 0; }
+.banner-name { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); margin: 0; }
+.banner-sub { font-size: var(--ng-fs-small); color: var(--ng-primary-deep); opacity: 0.75; letter-spacing: 0.05em; margin: 2px 0 0; }
+
 /* ---- 对话区 ---- */
 .chat-area { flex: 1; overflow-y: auto; padding: var(--ng-space-4) 0; }
 .chat-bubble { max-width: 85%; padding: var(--ng-space-3) var(--ng-space-4); border-radius: var(--ng-radius-card); margin-bottom: var(--ng-card-gap); font-size: var(--ng-fs-body); line-height: var(--ng-lh); animation: bubble-in var(--ng-dur-base) var(--ng-ease) both; }
 @keyframes bubble-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.chat-bubble.ai { background: var(--ng-bg-card); color: var(--ng-text-main); border-bottom-left-radius: var(--ng-radius-tag); border: 1px solid var(--ng-border); box-shadow: var(--ng-shadow-card); }
+.chat-bubble.ai { position: relative; margin-left: 36px; max-width: calc(85% - 36px); background: var(--ng-bg-card); color: var(--ng-text-main); border-bottom-left-radius: var(--ng-radius-tag); border: 1px solid var(--ng-border); box-shadow: var(--ng-shadow-card); }
+.chat-bubble.ai::before {
+  content: '🌟'; position: absolute; left: -36px; top: 0;
+  width: 28px; height: 28px; border-radius: 50%; background: var(--ng-gradient-btn);
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+  box-shadow: var(--ng-shadow-btn);
+}
 .chat-bubble.user { background: var(--ng-gradient-btn); color: var(--ng-text-inverse); margin-left: auto; border-bottom-right-radius: var(--ng-radius-tag); box-shadow: var(--ng-shadow-btn); }
 
 .typing { display: inline-flex; gap: var(--ng-space-1); }
@@ -496,7 +526,7 @@ function categoryLabel(cat) {
 .bubble-text { white-space: pre-line; }
 
 /* ---- 行动建议（快捷操作标签） ---- */
-.suggestion-row { display: flex; flex-wrap: wrap; gap: var(--ng-space-2); margin: calc(var(--ng-space-2) * -1) 0 var(--ng-card-gap); }
+.suggestion-row { display: flex; flex-wrap: wrap; gap: var(--ng-space-2); margin: calc(var(--ng-space-2) * -1) 0 var(--ng-card-gap) 36px; }
 .suggestion-chip {
   padding: 6px 12px; border-radius: var(--ng-radius-pill);
   background: var(--ng-primary-soft, #F5EFE4); border: 1px solid var(--ng-primary);
