@@ -1,9 +1,11 @@
 <template>
   <div id="app-root">
+    <DegradeBanner />
     <router-view />
   </div>
 </template>
 <script setup>
+import DegradeBanner from './components/DegradeBanner.vue'
 </script>
 <style>
 * {

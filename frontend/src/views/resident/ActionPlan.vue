@@ -25,6 +25,15 @@
         <h2 class="target-text">{{ plan.target }}</h2>
       </section>
 
+      <!-- Next Step (PRD 5.6: 可立即执行的下一步) -->
+      <section v-if="plan.next_step" class="nextstep-card">
+        <div class="nextstep-head">
+          <span class="nextstep-icon">👣</span>
+          <span class="nextstep-label">现在就可以做的下一步</span>
+        </div>
+        <p class="nextstep-text">{{ plan.next_step }}</p>
+      </section>
+
       <!-- Safety Reminder (orange/red risk only) -->
       <section v-if="showSafety && plan.safety_reminder" class="safety-banner">
         <span class="safety-icon">&#9888;</span>
@@ -67,6 +76,12 @@
       <section v-if="plan.escalation_condition" class="info-card">
         <h3 class="section-title">升级条件</h3>
         <p class="info-text">{{ plan.escalation_condition }}</p>
+      </section>
+
+      <!-- Fact Record Hint (PRD 5.6: 事实记录建议) -->
+      <section v-if="plan.fact_record" class="info-card fact-card">
+        <h3 class="section-title">事实记录建议</h3>
+        <p class="info-text">{{ plan.fact_record }}</p>
       </section>
 
       <!-- Communication Method -->
@@ -247,6 +262,45 @@ onMounted(loadPlan)
   font-weight: 600;
   color: #2D2A26;
   line-height: 1.5;
+}
+
+/* Next Step Card (PRD 5.6) */
+.nextstep-card {
+  background: #fff;
+  border: 1.5px solid var(--ng-primary);
+  border-radius: var(--ng-radius-card);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(232, 163, 61, 0.16);
+  animation: ng-fade-in 0.35s ease;
+}
+.nextstep-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.nextstep-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.nextstep-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #B07A20;
+}
+.nextstep-text {
+  font-size: 15px;
+  color: var(--ng-text-main);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Fact Record Card (PRD 5.6) */
+.fact-card {
+  border-left: 4px solid var(--ng-primary);
+  background: var(--ng-bg-page);
 }
 
 /* Safety Banner */

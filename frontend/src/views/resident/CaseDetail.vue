@@ -244,7 +244,7 @@ function navigateTo(step) {
 
 // --- Labels ---
 function riskLabel(level) {
-  const map = { low: '低风险', medium: '中风险', high: '高风险', critical: '极高风险' }
+  const map = { green: '低风险', yellow: '中风险', orange: '高风险', red: '安全风险' }
   return map[level] || '未知'
 }
 
@@ -409,10 +409,10 @@ onMounted(fetchCase)
   font-weight: 600;
   color: #fff;
 }
-.risk-low { background: #4CAF50; }
-.risk-medium { background: #FFC107; color: #2D2A26; }
-.risk-high { background: #FF9800; }
-.risk-critical { background: #F44336; }
+.risk-green { background: var(--ng-risk-green); }
+.risk-yellow { background: var(--ng-risk-yellow); color: #2D2A26; }
+.risk-orange { background: var(--ng-risk-orange); }
+.risk-red { background: var(--ng-risk-red); }
 
 .status-badge {
   display: inline-block;

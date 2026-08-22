@@ -377,14 +377,40 @@ def _generate_key_questions(symptoms):
     return questions[:3]
 
 
+# PRD 5.6: 事实记录建议 + 可立即执行的下一步
+FACT_RECORD_HINTS = {
+    "green": "建议在接下来的一周内，用 2-3 句话记录事情发生的时间、具体表现和对你的影响。客观记录能帮你在沟通时说得更有依据。",
+    "yellow": "建议连续记录 3-5 天：发生时间、持续多久、对方的回应、你的感受。具体的记录比笼统的印象更容易让对方理解问题。",
+    "orange": "建议每次发生时立即记录时间、地点、经过和在场的人，如有照片或录音也妥善保存。这些记录在请求社区协助时会很重要。",
+    "red": "请在确保安全的前提下，尽量保留关键证据（时间、地点、经过）。如果情况紧急，优先保护自己并报警，记录可以之后补。",
+}
+
+NEXT_STEPS = {
+    "green": "今天就花一分钟，把最近一次发生的情况写进事实记录，然后决定是否需要在近期沟通。",
+    "yellow": "先从记录最近一次的具体情况开始，再想想你希望对方做出什么改变，这会让后续沟通更有方向。",
+    "orange": "建议先完成一次事实记录，并考虑是否邀请社区管理者一起协调，不要独自与对方对峙。",
+    "red": "请先查看安全响应指引，确认自己处于安全环境，然后联系一位你信任的人。",
+}
+
+COMMUNICATION_METHODS = {
+    "green": "选一个双方都放松的时机，当面轻松聊聊，或先发一条简短消息",
+    "yellow": "建议挑选平静的时机，先发一条友善的消息说明情况，再视回应决定是否当面沟通",
+    "orange": "建议通过社区管理者协调沟通；如需直接对话，请约第三方在场",
+    "red": "不建议直接沟通，请优先联系社区管理者或报警处理",
+}
+
+
 def generate_action_plan(risk_level, context=None):
     template = ACTION_TEMPLATES.get(risk_level, ACTION_TEMPLATES["green"])
     return {
         "target": template["target"],
         "steps": template["steps"],
-        "don't_do": template["don't_do"],
+        "dont_do": template["don't_do"],
         "escalation": template["escalation"],
         "safety_reminder": "存在安全风险，建议优先保护自身安全" if risk_level == "red" else None,
+        "fact_record": FACT_RECORD_HINTS.get(risk_level, FACT_RECORD_HINTS["green"]),
+        "next_step": NEXT_STEPS.get(risk_level, NEXT_STEPS["green"]),
+        "communication_method": COMMUNICATION_METHODS.get(risk_level, COMMUNICATION_METHODS["green"]),
     }
 
 
@@ -398,3 +424,81 @@ def detect_safety(text):
     if risks:
         return True, risks
     return False, []
+
+
+# ============================================================
+# PRD 11.6: 逐轮表达优化 + 最终沟通版本
+# ============================================================
+_ABSOLUTE_REPLACEMENTS = [
+    ("每次都", "最近几次"),
+    ("总是", "最近有几次"),
+    ("每次", "最近有一次"),
+    ("一直", "这段时间"),
+    ("从不", "很少"),
+    ("永远", "很长一段时间里"),
+]
+
+_BLAME_REPLACEMENTS = [
+    ("都是你的问题", "这件事确实影响到了我的生活"),
+    ("都是你的错", "这件事给我的生活带来了困扰"),
+    ("你太过分了", "我对此感到有些困扰"),
+    ("你太自私了", "我希望我们能互相体谅一下"),
+    ("你没素质", "我希望我们能更注意彼此的感受"),
+    ("你故意的", "这件事对我造成了实际的影响"),
+    ("太过分了", "我对此感到有些困扰"),
+    ("烦死了", "这让我挺困扰的"),
+]
+
+_REQUEST_MARKERS = ["希望", "请", "可以吗", "能不能", "可不可以", "商量", "建议", "能不能麻烦"]
+
+
+def improve_expression(text):
+    """针对本轮表达给出优化版本；表达已足够好时返回 None。"""
+    if not text or not text.strip():
+        return None
+    improved = text.strip()
+    changed = False
+    for bad, good in _ABSOLUTE_REPLACEMENTS:
+        if bad in improved:
+            improved = improved.replace(bad, good)
+            changed = True
+    for bad, good in _BLAME_REPLACEMENTS:
+        if bad in improved:
+            improved = improved.replace(bad, good)
+            changed = True
+    if not any(m in improved for m in _REQUEST_MARKERS):
+        improved = improved.rstrip("。！!？?，, ") + "。我希望我们能商量出一个两边都接受的办法，可以吗？"
+        changed = True
+    if changed and improved != text.strip():
+        return improved
+    return None
+
+
+_FINAL_VERSION_HINTS = {
+    "noise": ("休息和日常作息", "在休息时间稍微留意一下音量"),
+    "parking": ("日常车辆进出", "停车时稍微留意一下车位边界"),
+    "pet": ("日常居住体验", "在公共区域稍微留意一下宠物的情况"),
+    "renovation": ("居家休息", "装修时尽量避开休息时段，提前打个招呼"),
+    "leak": ("家里设施的正常使用", "一起看一下漏水的位置，尽快处理"),
+    "garbage": ("公共区域的整洁", "垃圾投放时稍微留意一下位置"),
+    "public_space": ("公共区域的正常使用", "一起维护公共空间的畅通"),
+    "wechat": ("邻里间的正常沟通", "有话好好说，避免在群里产生误会"),
+}
+
+
+def build_final_version(description, category):
+    """汇总训练要点，产出一段可直接用于现实沟通的最终沟通版本。"""
+    impact, request = _FINAL_VERSION_HINTS.get(category or "", ("日常生活", "一起商量一个合适的解决办法"))
+    fact = (description or "").strip().replace("\n", " ")
+    if len(fact) > 60:
+        fact = fact[:60] + "……"
+    if not fact:
+        fact = "最近发生的一些情况"
+    lines = [
+        "【开场】您好，占用您一分钟时间，想跟您聊聊最近的一个情况。",
+        "【事实】" + fact,
+        "【感受】因为这件事，我的" + impact + "受到了一些影响，心里多少有点困扰。",
+        "【请求】想跟您商量一下，" + request + "，可以吗？",
+        "【收尾】谢谢您愿意听我说这些，希望咱们以后相处得更舒心。",
+    ]
+    return "\n".join(lines)

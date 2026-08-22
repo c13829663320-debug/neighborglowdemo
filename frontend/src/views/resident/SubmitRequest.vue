@@ -16,10 +16,30 @@
         </div>
       </div>
 
+      <!-- 案例确认卡片（AI 认为信息足够时显示） -->
+      <div v-if="casePending" class="confirm-card">
+        <div class="confirm-header">
+          <span class="checkmark">✓</span>
+          <h3>信息已收集完毕</h3>
+        </div>
+        <div class="confirm-body">
+          <p class="summary">{{ casePending.summary }}</p>
+          <div class="confirm-row">
+            <span class="label">问题分类</span>
+            <span>{{ categoryLabel(casePending.category) }}</span>
+          </div>
+        </div>
+        <div class="confirm-actions">
+          <button @click="confirmCreate" class="btn-primary">确认创建案例 →</button>
+          <button @click="continueChat" class="btn-secondary">再补充一些信息</button>
+        </div>
+      </div>
+
+      <!-- 创建完成后的结果卡片 -->
       <div v-if="createdCase" class="result-card">
         <div class="result-header">
           <span class="checkmark">✓</span>
-          <h3>问题已记录</h3>
+          <h3>案例已创建</h3>
         </div>
         <div class="result-body">
           <div class="result-row">
@@ -37,7 +57,8 @@
         </div>
       </div>
 
-      <div v-if="!createdCase" class="form-area">
+      <!-- 输入区域 -->
+      <div v-if="!createdCase && !casePending" class="form-area">
         <div class="input-with-voice">
           <textarea v-model="input" :placeholder="inputPlaceholder" rows="3" @keydown.enter.ctrl="submit" :disabled="loading"></textarea>
           <button class="btn-voice" :class="{ recording: isRecording }" @click="toggleVoice" type="button">
@@ -86,7 +107,11 @@ const input = ref('')
 const messages = ref([])
 const loading = ref(false)
 const createdCase = ref(null)
+const casePending = ref(null) // { summary, title, category }
 const chatArea = ref(null)
+
+// 对话历史（用于 LLM 多轮对话）
+const conversationHistory = ref([])
 
 // Voice input
 const isRecording = ref(false)
@@ -157,12 +182,22 @@ const categoryLabels = {
 const inputPlaceholder = ref('描述你遇到的邻里问题...')
 
 onMounted(() => {
-  messages.value.push({ role: 'ai', text: '你好，我是邻光。请描述你遇到的邻里问题，我会帮你分析情况。' })
   const scenario = route.query.scenario
+  let initialMsg = '你好，我是邻光。请描述你遇到的邻里问题，我会帮你分析情况。'
   if (scenario && scenarioLabels[scenario]) {
-    messages.value.push({ role: 'ai', text: `你选择了「${scenarioLabels[scenario]}」场景，请详细描述一下发生了什么？` })
-    messages.value.push({ role: 'ai', text: '比如：什么时候发生的？频率如何？对你造成了什么影响？你和对方之前有过沟通吗？' })
+    initialMsg = `你选择了「${scenarioLabels[scenario]}」场景。请详细描述一下发生了什么？`
     inputPlaceholder.value = `描述${scenarioLabels[scenario]}的具体情况...`
+    conversationHistory.value.push(
+      { role: 'assistant', content: initialMsg },
+      { role: 'assistant', content: '比如：什么时候发生的？频率如何？对你造成了什么影响？你和对方之前有过沟通吗？' }
+    )
+    messages.value.push(
+      { role: 'ai', text: initialMsg },
+      { role: 'ai', text: '比如：什么时候发生的？频率如何？对你造成了什么影响？你和对方之前有过沟通吗？' }
+    )
+  } else {
+    conversationHistory.value.push({ role: 'assistant', content: initialMsg })
+    messages.value.push({ role: 'ai', text: initialMsg })
   }
 })
 
@@ -174,50 +209,108 @@ function scrollToBottom() {
   })
 }
 
+// 核心：发送消息 → AI 引导对话，不立即创建案例
 async function submit() {
   if (!input.value.trim() || loading.value) return
   const text = input.value.trim()
-  messages.value.push({ role: 'user', text })
-  scrollToBottom()
   input.value = ''
   loading.value = true
 
+  // 显示用户消息
+  messages.value.push({ role: 'user', text })
+  conversationHistory.value.push({ role: 'user', content: text })
+  scrollToBottom()
+
   try {
-    // AI analysis preview before showing result
-    messages.value.push({ role: 'ai', text: '正在分析你的描述...' })
+    // 调用 AI 引导对话端点
+    messages.value.push({ role: 'ai', text: '正在分析...' })
     scrollToBottom()
 
-    const res = await cases.create({
-      title: text.slice(0, 30),
-      description: text,
-      category: route.query.scenario || null,
+    const res = await api.post('/ai/chat-submit', {
+      messages: conversationHistory.value,
+      user_input: text,
     })
-    createdCase.value = res.data
 
-    // Image analysis after case creation (non-blocking)
+    messages.value.pop() // 移除"正在分析"
+
+    const { reply, ready_to_create, case_title, case_summary, category } = res.data
+
+    if (ready_to_create) {
+      // AI 认为信息足够，显示确认卡片
+      messages.value.push({ role: 'ai', text: reply })
+      casePending.value = {
+        summary: case_summary || reply,
+        title: case_title || text.slice(0, 30),
+        category: category || 'other',
+      }
+      scrollToBottom()
+    } else {
+      // 继续引导对话
+      messages.value.push({ role: 'ai', text: reply })
+      conversationHistory.value.push({ role: 'assistant', content: reply })
+      scrollToBottom()
+    }
+  } catch (e) {
+    messages.value.push({ role: 'ai', text: '抱歉，分析时遇到了问题，请稍后重试。' })
+    scrollToBottom()
+  } finally {
+    loading.value = false
+  }
+}
+
+// 用户确认创建案例
+async function confirmCreate() {
+  if (!casePending.value || loading.value) return
+  loading.value = true
+
+  try {
+    // 构建完整的问题描述（合并所有用户输入）
+    const userMessages = conversationHistory.value
+      .filter(m => m.role === 'user')
+      .map(m => m.content)
+      .join('。')
+
+    const res = await cases.create({
+      title: casePending.value.title,
+      description: userMessages,
+      category: casePending.value.category,
+    })
+
+    // 图片分析（如果有）
     if (imageFile.value) {
       const base64 = await getImageBase64()
       try {
-        const imgRes = await api.post(`/cases/${res.data.id}/analyze-image`, { image: base64, text: text })
-        imageAnalysis.value = imgRes.data.analysis
+        await api.post(`/cases/${res.data.id}/analyze-image`, { image: base64, text: userMessages })
       } catch (e) {
         console.error('图片分析失败', e)
       }
     }
 
-    messages.value.pop() // remove "正在分析"
-    messages.value.push({
-      role: 'ai',
-      text: null,
-      html: `<strong>分析完成！</strong><br/>初步判定风险等级为 <span style="color:${riskColor(res.data.risk_level)};font-weight:600">${riskLabel(res.data.risk_level)}</span>。`
-    })
+    casePending.value = null
+    createdCase.value = res.data
+
+    // 触发诊断
+    try {
+      await api.post(`/cases/${res.data.id}/diagnose`)
+    } catch (e) {
+      console.error('诊断失败', e)
+    }
+
     scrollToBottom()
   } catch (e) {
-    messages.value.push({ role: 'ai', text: '抱歉，提交时遇到了问题，请稍后重试。' })
+    messages.value.push({ role: 'ai', text: '抱歉，创建案例时遇到了问题，请稍后重试。' })
     scrollToBottom()
   } finally {
     loading.value = false
   }
+}
+
+// 用户想再补充信息，回到对话模式
+function continueChat() {
+  casePending.value = null
+  messages.value.push({ role: 'ai', text: '好的，请继续补充。还有什么想说的吗？' })
+  conversationHistory.value.push({ role: 'assistant', content: '好的，请继续补充。还有什么想说的吗？' })
+  scrollToBottom()
 }
 
 function goToDiagnosis() {
@@ -262,10 +355,21 @@ function categoryLabel(cat) {
 .btn-send:hover { background: #D4922E; }
 .btn-send:disabled { background: #ccc; cursor: not-allowed; }
 
+/* 案例确认卡片 */
+.confirm-card { background: #fff; border-radius: 16px; padding: 24px; margin-top: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); animation: slideUp 0.4s; border: 2px solid #E8A33D; }
+.confirm-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.checkmark { width: 32px; height: 32px; border-radius: 50%; background: #4CAF50; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
+.confirm-header h3 { font-size: 18px; font-weight: 600; }
+.confirm-body { margin-bottom: 20px; }
+.confirm-body .summary { font-size: 14px; color: #2D2A26; line-height: 1.6; margin-bottom: 12px; }
+.confirm-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.confirm-row .label { font-size: 14px; color: #6B6560; }
+.confirm-actions { display: flex; flex-direction: column; gap: 10px; }
+
+/* 结果卡片 */
 .result-card { background: #fff; border-radius: 16px; padding: 24px; margin-top: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); animation: slideUp 0.4s; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.checkmark { width: 32px; height: 32px; border-radius: 50%; background: #4CAF50; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
 .result-header h3 { font-size: 18px; font-weight: 600; }
 .result-body { margin-bottom: 20px; }
 .result-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }

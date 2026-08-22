@@ -16,6 +16,7 @@ from ai_engine import (
     analyze_context, generate_action_plan, generate_message,
     detect_safety, detect_emotions, classify_category,
     detect_frequency, detect_relationship,
+    improve_expression, build_final_version,
 )
 from agent import (
     match_trigger, get_agent, create_agent_response, AGENT_INFO,
@@ -229,6 +230,7 @@ class SimulationCreate(BaseModel):
 
 class SimulationMessage(BaseModel):
     content: str
+    counterpart_reply: Optional[str] = None
 
 class FollowUpCreate(BaseModel):
     action_taken: Optional[str] = None
@@ -622,10 +624,11 @@ def get_case_detail(case_id: int, db: Session = Depends(get_db), current_user: U
     result = _case_to_dict(case)
     diagnosis = db.query(Diagnosis).filter(Diagnosis.case_id == case_id).order_by(Diagnosis.created_at.desc()).first()
     if diagnosis:
-        result["diagnosis"] = {"id": diagnosis.id, "facts": diagnosis.facts, "assumptions": diagnosis.assumptions, "emotions": diagnosis.emotions, "needs": diagnosis.needs, "risk_level": diagnosis.risk_level, "confidence": diagnosis.confidence, "confirmed_by_user": diagnosis.confirmed_by_user}
+        result["diagnosis"] = {"id": diagnosis.id, "facts": diagnosis.facts, "assumptions": diagnosis.assumptions, "emotions": diagnosis.emotions, "needs": diagnosis.needs, "risk_level": diagnosis.risk_level, "confidence": diagnosis.confidence, "confirmed_by_user": diagnosis.confirmed_by_user, "summary": diagnosis.summary, "insights": diagnosis.insights, "key_questions": diagnosis.key_questions, "safety_risks": diagnosis.safety_risks, "analysis_type": diagnosis.analysis_type}
     plan = db.query(ActionPlan).filter(ActionPlan.case_id == case_id).order_by(ActionPlan.created_at.desc()).first()
     if plan:
-        result["action_plan"] = {"id": plan.id, "target": plan.target, "steps": plan.steps, "communication_method": plan.communication_method, "escalation_condition": plan.escalation_condition, "safety_reminder": plan.safety_reminder, "status": plan.status}
+        generated = generate_action_plan(case.risk_level)
+        result["action_plan"] = {"id": plan.id, "target": plan.target, "steps": plan.steps, "communication_method": plan.communication_method, "escalation_condition": plan.escalation_condition, "safety_reminder": plan.safety_reminder, "status": plan.status, "fact_record": generated.get("fact_record"), "next_step": generated.get("next_step"), "dont_do": generated.get("dont_do")}
     result["messages_count"] = db.query(Message).filter(Message.case_id == case_id).count()
     result["followups_count"] = db.query(FollowUp).filter(FollowUp.case_id == case_id).count()
     return result
@@ -818,7 +821,7 @@ def create_action_plan(case_id: int, db: Session = Depends(get_db), current_user
     db.commit()
     db.refresh(plan)
     add_audit_log(db, current_user.id, "create_action_plan", "case", case_id)
-    return {"id": plan.id, "target": plan.target, "steps": plan.steps, "communication_method": plan.communication_method, "escalation_condition": plan.escalation_condition, "safety_reminder": plan.safety_reminder, "status": plan.status, "dont_do": plan_data.get("don't_do", [])}
+    return {"id": plan.id, "target": plan.target, "steps": plan.steps, "communication_method": plan.communication_method, "escalation_condition": plan.escalation_condition, "safety_reminder": plan.safety_reminder, "status": plan.status, "dont_do": plan_data.get("dont_do", []), "fact_record": plan_data.get("fact_record"), "next_step": plan_data.get("next_step")}
 
 
 # ================================================================================
@@ -884,6 +887,8 @@ def start_simulation(case_id: int, body: SimulationCreate, db: Session = Depends
         raise HTTPException(status_code=404, detail="案件不存在")
     if current_user.role == "resident" and case.resident_id != current_user.id:
         raise HTTPException(status_code=403, detail="无权操作此案件")
+    if case.risk_level == "red":
+        raise HTTPException(status_code=400, detail="该案例涉及安全风险，请先完成安全响应流程，再进行模拟训练")
     style = body.counterpart_style
     if style == "defensive":
         initial_response = "你谁啊？找我什么事？我什么都没做啊，你是不是搞错了？"
@@ -913,12 +918,38 @@ def send_simulation_message(case_id: int, sim_id: int, body: SimulationMessage, 
     sim = db.query(Simulation).filter(Simulation.id == sim_id, Simulation.case_id == case_id).first()
     if not sim:
         raise HTTPException(status_code=404, detail="模拟记录不存在")
-    conversation = sim.conversation or []
+    conversation = list(sim.conversation or [])
+    uc = body.content
+
+    # ---- PRD 11.6: [END] 结束信号 —— 不写入对话，聚合逐轮反馈并产出最终沟通版本 ----
+    if uc.strip() == "[END]":
+        existing = sim.feedback if isinstance(sim.feedback, dict) else {}
+        history = existing.get("history", [])
+        rounds = len(history)
+        avg = round(sum(h.get("score", 5.0) for h in history) / rounds, 1) if rounds else 5.0
+        merged: List[str] = []
+        for h in history:
+            for s in (h.get("suggestions") or []):
+                if s not in merged:
+                    merged.append(s)
+        if not merged:
+            merged = ["整体表达平稳，继续保持冷静和客观的语气"]
+        final_version = build_final_version(case.description, case.category)
+        sim.score = avg
+        sim.feedback = {"history": history, "avg_score": avg, "final": True}
+        db.commit()
+        db.refresh(sim)
+        add_audit_log(db, current_user.id, "end_simulation", "simulation", sim.id, {"score": avg, "rounds": rounds})
+        return {"id": sim.id, "final": True, "conversation": sim.conversation, "score": avg,
+                "feedback": merged, "final_version": final_version, "rounds": rounds}
+
     user_msg = {"role": "user", "content": body.content, "timestamp": datetime.utcnow().isoformat()}
     conversation.append(user_msg)
     style = sim.counterpart_style
-    uc = body.content
-    if style == "defensive":
+    if body.counterpart_reply:
+        # LLM 模式下前端传入真实的对方回复，保证存档对话与实际训练一致
+        counterpart_reply = body.counterpart_reply
+    elif style == "defensive":
         if any(w in uc for w in ["请", "谢谢", "理解", "商量"]):
             counterpart_reply = "嗯……你说的也不是完全没道理，但是我觉得这事也不能全怪我吧？让我想想。"
         elif any(w in uc for w in ["总是", "每次", "一直"]):
@@ -956,16 +987,22 @@ def send_simulation_message(case_id: int, sim_id: int, body: SimulationMessage, 
         score -= 1.0
         suggestions.append("尝试减少指责性语言，改用描述事实的方式")
     if not suggestions:
-        suggestions.append("继续保持冷静和客观的表达")
-    suggestions.append("可以尝试提出一个具体的、可操作的小请求")
+        suggestions.append("表达平稳，继续保持冷静和客观的语气")
     score = max(0.0, min(10.0, score))
-    feedback = {"score": round(score, 1), "suggestions": suggestions, "round": len([m for m in conversation if m["role"] == "user"])}
-    sim.conversation = conversation
-    sim.score = round(score, 1)
-    sim.feedback = feedback
+    # PRD 11.6: 每轮表达获得具体反馈和优化版本
+    improved = improve_expression(uc)
+    round_num = len([m for m in conversation if m["role"] == "user"])
+    feedback = {"score": round(score, 1), "suggestions": suggestions, "round": round_num, "improved_version": improved}
+    existing = sim.feedback if isinstance(sim.feedback, dict) else {}
+    history = existing.get("history", []) if not existing.get("final") else []
+    history.append(feedback)
+    avg = round(sum(h.get("score", 5.0) for h in history) / len(history), 1)
+    sim.conversation = list(conversation)
+    sim.score = avg
+    sim.feedback = {"history": list(history), "avg_score": avg}
     db.commit()
     db.refresh(sim)
-    return {"id": sim.id, "conversation": sim.conversation, "score": sim.score, "feedback": sim.feedback}
+    return {"id": sim.id, "conversation": sim.conversation, "score": round(score, 1), "avg_score": avg, "feedback": feedback}
 
 
 # ================================================================================
@@ -1397,6 +1434,107 @@ def ai_chat(data: dict, current_user: User = Depends(get_current_user)):
         return {"reply": reply, "model": _ai_model}
     except Exception as e:
         raise HTTPException(500, f"AI 调用失败: {str(e)}")
+
+
+# ================================================================================
+# 49.5. AI: Chat-Submit (引导对话 + 意图检测 + 案例创建准备)
+# ================================================================================
+@app.post("/api/ai/chat-submit")
+def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
+    """
+    提交案例前的引导对话接口。
+    分析用户输入意图，判断是否已收集足够信息来创建案例。
+    返回：
+      - reply: AI 的对话回复
+      - ready_to_create: 是否已收集足够信息可以创建案例
+      - case_summary: 如果 ready_to_create 为 true，返回案例摘要
+    """
+    messages = data.get("messages", [])
+    # 当前用户最新输入
+    user_input = data.get("user_input", "")
+
+    # 如果 LLM 不可用，降级到规则引擎做简单意图判断
+    if not LLM_ENABLED:
+        category = classify_category(user_input)
+        freq = detect_frequency(user_input)
+        rel = detect_relationship(user_input)
+        emotions = detect_emotions(user_input)
+
+        # 如果检测到具体的问题关键词，认为可以创建案例
+        ready = category != "other" or len(emotions) > 0 or freq != "unknown"
+        if ready:
+            summary = f"检测到{category}相关问题"
+        else:
+            summary = None
+
+        return {
+            "reply": "已收到您的描述，正在为您创建案例...",
+            "ready_to_create": ready,
+            "case_summary": summary,
+            "category": category,
+        }
+
+    # LLM 模式：使用 LLM 分析对话意图
+    system = """你是邻光社区纠纷调解平台的AI助手「邻光」。你的任务是引导居民描述他们遇到的邻里纠纷问题，并在收集到足够信息后准备创建案例。
+
+你需要分析对话并判断当前状态：
+
+1. **问候/闲聊**：用户只是打招呼、寒暄，没有描述具体问题
+2. **正在描述问题但信息不足**：用户开始描述问题，但缺少关键信息（如时间、频率、影响等）
+3. **信息足够**：用户已经提供了足够的纠纷描述
+
+关键信息包括：
+- 发生了什么问题（噪音、漏水、宠物、装修等）
+- 什么时候发生的、频率如何
+- 对用户造成了什么影响
+- 用户的情绪状态
+
+判断规则：
+- 如果用户只是打招呼或问无关问题 → stage="greeting"
+- 如果用户描述了问题但信息不完整 → stage="collecting"
+- 如果用户提供了足够的问题描述（至少包含问题类型和影响）→ stage="ready"
+
+输出格式（只返回JSON）：
+{
+  "stage": "greeting" | "collecting" | "ready",
+  "reply": "你对用户的回复内容（温暖、专业、引导性）",
+  "case_title": "如果stage是ready，生成一个简短的案例标题（15字以内）",
+  "case_summary": "如果stage是ready，生成案例摘要（30字以内）",
+  "category": "推测的问题分类（noise/parking/pet/renovation/leak/garbage/public_space/wechat/other）"
+}
+
+回复风格：温暖、专业、善于倾听。用「你」称呼用户，不要说教。"""
+
+    full_messages = [{"role": "system", "content": system}]
+    for msg in messages[-15:]:
+        full_messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+
+    try:
+        result_text = llm_chat_messages(full_messages, temperature=0.7, max_tokens=1000)
+        import json as _json
+        clean = result_text.strip()
+        if clean.startswith("```"):
+            clean = clean.split("\n", 1)[-1] if "\n" in clean else clean[3:]
+        if clean.endswith("```"):
+            clean = clean[:-3]
+        clean = clean.strip()
+        result = _json.loads(clean)
+
+        return {
+            "reply": result.get("reply", ""),
+            "ready_to_create": result.get("stage") == "ready",
+            "case_title": result.get("case_title"),
+            "case_summary": result.get("case_summary"),
+            "category": result.get("category", "other"),
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # 降级：直接回复
+        return {
+            "reply": "我理解你的感受。能否再多描述一下具体的情况？比如什么时候发生的、对你造成了什么影响？",
+            "ready_to_create": False,
+        }
 
 
 # ================================================================================

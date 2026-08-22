@@ -1,355 +1,139 @@
 <template>
-  <div class="diagnosis-result-page">
+  <div class="ng-page diagnosis-page">
     <!-- Header -->
-    <div class="header">
-      <button class="back-btn" @click="$router.back()">
-        <span>←</span>
-      </button>
-      <h1>AI 诊断结果</h1>
-    </div>
+    <header class="page-header">
+      <button class="icon-btn" @click="$router.back()" aria-label="返回">←</button>
+      <h1 class="ng-page-title">AI 诊断结果</h1>
+      <span class="header-spacer"></span>
+    </header>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>正在生成诊断结果...</p>
+    <!-- Skeleton Loading -->
+    <div v-if="loading" class="loading-stack">
+      <SkeletonCard text="正在分析情况…" />
+      <SkeletonCard text="梳理事实与需要…" />
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="error-state">
-      <p>{{ error }}</p>
-      <button @click="loadDiagnosis" class="retry-btn">重试</button>
+    <div v-else-if="error" class="ng-empty">
+      <div class="ng-empty-icon">📡</div>
+      <div class="ng-empty-title">诊断加载失败</div>
+      <div class="ng-empty-desc">{{ error }}</div>
+      <button class="ng-btn ng-btn-primary" @click="loadDiagnosis">重试</button>
     </div>
 
     <!-- Content -->
-    <div v-else-if="diagnosis" class="content">
-      <!-- AI Badge -->
-      <div v-if="diagnosis.analysis_type === 'llm'" class="ai-badge">
-        <span class="ai-badge-icon">✦</span>
-        <span>AI 智能分析</span>
+    <div v-else-if="diagnosis" class="content-stack">
+      <!-- AI Badge + confidence -->
+      <div class="meta-row ng-fade-in">
+        <span v-if="diagnosis.analysis_type === 'llm'" class="ai-badge">
+          <span class="ai-badge-icon">✦</span> AI 智能分析
+        </span>
+        <span v-else class="ai-badge ai-badge--local">基础模式</span>
+        <span v-if="lowConfidence" class="uncertain-tag">? 部分判断不确定</span>
       </div>
 
       <!-- Summary Card -->
-      <div class="summary-card">
+      <section class="ng-card ng-card--hero summary-card ng-fade-in">
         <div class="summary-header">
-          <h2>诊断摘要</h2>
-          <div class="risk-badge" :class="riskClass">
-            {{ riskLabel }}
-          </div>
+          <h2 class="ng-section-title summary-title">诊断摘要</h2>
+          <span class="ng-risk-badge" :class="riskClass">{{ riskLabel }}</span>
         </div>
-        <p class="summary-text" :class="{ 'summary-text--large': diagnosis.analysis_type === 'llm' && diagnosis.summary }">{{ diagnosis.summary }}</p>
-        
+        <p class="summary-text">{{ diagnosis.summary }}</p>
         <div class="confidence-section">
           <div class="confidence-label">
             <span>置信度</span>
             <span class="confidence-value">{{ Math.round(diagnosis.confidence * 100) }}%</span>
           </div>
           <div class="confidence-bar">
-            <div 
-              class="confidence-fill" 
-              :style="{ width: (diagnosis.confidence * 100) + '%' }"
-            ></div>
+            <div class="confidence-fill" :style="{ width: (diagnosis.confidence * 100) + '%' }"></div>
           </div>
+          <p v-if="lowConfidence" class="confidence-note">
+            当前信息有限，以下判断供参考，你可以随时修正。
+          </p>
         </div>
-      </div>
+      </section>
 
       <!-- Four Dimensions -->
-      <div class="dimensions-section">
-        <h3>四维度分析</h3>
-        
-        <!-- Facts -->
-        <div class="dimension-card">
+      <section class="dimensions ng-fade-in">
+        <h3 class="ng-section-title">四维度分析</h3>
+
+        <div class="ng-card dimension-card" v-for="dim in dimensions" :key="dim.key">
           <div class="dimension-header">
             <div class="dimension-title">
-              <span class="icon">📋</span>
-              <span>事实</span>
+              <span class="dimension-icon">{{ dim.icon }}</span>
+              <span>{{ dim.label }}</span>
             </div>
-            <button 
-              v-if="!editing.facts" 
-              @click="startEdit('facts')" 
+            <button
               class="edit-btn"
+              :class="{ 'edit-btn--active': editing[dim.key] }"
+              @click="toggleEdit(dim.key)"
             >
-              编辑
-            </button>
-            <button 
-              v-else 
-              @click="finishEdit('facts')" 
-              class="edit-btn finish"
-            >
-              完成编辑
+              {{ editing[dim.key] ? '完成' : '编辑' }}
             </button>
           </div>
-          
-          <div class="dimension-content">
-            <ul v-if="!editing.facts" class="item-list">
-              <li v-for="(item, index) in diagnosis.facts" :key="index">
-                {{ item }}
-              </li>
+
+          <!-- Display mode -->
+          <template v-if="!editing[dim.key]">
+            <div v-if="dim.chip" class="chip-row">
+              <span class="chip" v-for="(item, i) in diagnosis[dim.key]" :key="i">{{ item }}</span>
+              <span v-if="!diagnosis[dim.key]?.length" class="empty-hint">暂无</span>
+            </div>
+            <ul v-else class="item-list">
+              <li v-for="(item, i) in diagnosis[dim.key]" :key="i">{{ item }}</li>
+              <li v-if="!diagnosis[dim.key]?.length" class="empty-hint">暂无</li>
             </ul>
-            
-            <div v-else class="edit-mode">
-              <div class="editable-list">
-                <div 
-                  v-for="(item, index) in diagnosis.facts" 
-                  :key="index" 
-                  class="editable-item"
-                >
-                  <input 
-                    v-model="diagnosis.facts[index]" 
-                    type="text" 
-                    class="edit-input"
-                  />
-                  <button @click="removeItem('facts', index)" class="remove-btn">
-                    ×
-                  </button>
-                </div>
-              </div>
-              <div class="add-item">
-                <input 
-                  v-model="newItems.facts" 
-                  @keyup.enter="addItem('facts')"
-                  type="text" 
-                  placeholder="添加新事实..." 
-                  class="add-input"
-                />
-                <button @click="addItem('facts')" class="add-btn">添加</button>
-              </div>
-            </div>
-          </div>
-        </div>
+          </template>
 
-        <!-- Assumptions -->
-        <div class="dimension-card">
-          <div class="dimension-header">
-            <div class="dimension-title">
-              <span class="icon">💭</span>
-              <span>推测</span>
+          <!-- Edit mode -->
+          <div v-else class="edit-mode">
+            <div class="edit-row" v-for="(item, i) in diagnosis[dim.key]" :key="i">
+              <input class="ng-input edit-input" v-model="diagnosis[dim.key][i]" />
+              <button class="remove-btn" @click="removeItem(dim.key, i)" aria-label="删除">×</button>
             </div>
-            <button 
-              v-if="!editing.assumptions" 
-              @click="startEdit('assumptions')" 
-              class="edit-btn"
-            >
-              编辑
-            </button>
-            <button 
-              v-else 
-              @click="finishEdit('assumptions')" 
-              class="edit-btn finish"
-            >
-              完成编辑
-            </button>
-          </div>
-          
-          <div class="dimension-content">
-            <ul v-if="!editing.assumptions" class="item-list">
-              <li v-for="(item, index) in diagnosis.assumptions" :key="index">
-                {{ item }}
-              </li>
-            </ul>
-            
-            <div v-else class="edit-mode">
-              <div class="editable-list">
-                <div 
-                  v-for="(item, index) in diagnosis.assumptions" 
-                  :key="index" 
-                  class="editable-item"
-                >
-                  <input 
-                    v-model="diagnosis.assumptions[index]" 
-                    type="text" 
-                    class="edit-input"
-                  />
-                  <button @click="removeItem('assumptions', index)" class="remove-btn">
-                    ×
-                  </button>
-                </div>
-              </div>
-              <div class="add-item">
-                <input 
-                  v-model="newItems.assumptions" 
-                  @keyup.enter="addItem('assumptions')"
-                  type="text" 
-                  placeholder="添加新推测..." 
-                  class="add-input"
-                />
-                <button @click="addItem('assumptions')" class="add-btn">添加</button>
-              </div>
+            <div class="edit-row">
+              <input
+                class="ng-input edit-input"
+                v-model="newItems[dim.key]"
+                @keyup.enter="addItem(dim.key)"
+                :placeholder="'添加' + dim.label + '…'"
+              />
+              <button class="add-btn" @click="addItem(dim.key)">添加</button>
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- Emotions -->
-        <div class="dimension-card">
-          <div class="dimension-header">
-            <div class="dimension-title">
-              <span class="icon">💖</span>
-              <span>情绪</span>
-            </div>
-            <button 
-              v-if="!editing.emotions" 
-              @click="startEdit('emotions')" 
-              class="edit-btn"
-            >
-              编辑
-            </button>
-            <button 
-              v-else 
-              @click="finishEdit('emotions')" 
-              class="edit-btn finish"
-            >
-              完成编辑
-            </button>
-          </div>
-          
-          <div class="dimension-content">
-            <div v-if="!editing.emotions" class="tag-chips">
-              <span 
-                v-for="(item, index) in diagnosis.emotions" 
-                :key="index" 
-                class="chip"
-              >
-                {{ item }}
-              </span>
-            </div>
-            
-            <div v-else class="edit-mode">
-              <div class="editable-chips">
-                <div 
-                  v-for="(item, index) in diagnosis.emotions" 
-                  :key="index" 
-                  class="editable-chip"
-                >
-                  <input 
-                    v-model="diagnosis.emotions[index]" 
-                    type="text" 
-                    class="chip-input"
-                  />
-                  <button @click="removeItem('emotions', index)" class="chip-remove">
-                    ×
-                  </button>
-                </div>
-              </div>
-              <div class="add-item">
-                <input 
-                  v-model="newItems.emotions" 
-                  @keyup.enter="addItem('emotions')"
-                  type="text" 
-                  placeholder="添加情绪标签..." 
-                  class="add-input"
-                />
-                <button @click="addItem('emotions')" class="add-btn">添加</button>
-              </div>
-            </div>
+      <!-- Insights -->
+      <section v-if="diagnosis.insights?.length" class="ng-fade-in">
+        <h3 class="ng-section-title">AI 洞察</h3>
+        <div class="insight-list">
+          <div class="ng-card insight-item" v-for="(ins, i) in diagnosis.insights" :key="i">
+            <span class="insight-num">{{ i + 1 }}</span>
+            <p>{{ ins }}</p>
           </div>
         </div>
-
-        <!-- Needs -->
-        <div class="dimension-card">
-          <div class="dimension-header">
-            <div class="dimension-title">
-              <span class="icon">🎯</span>
-              <span>需求</span>
-            </div>
-            <button 
-              v-if="!editing.needs" 
-              @click="startEdit('needs')" 
-              class="edit-btn"
-            >
-              编辑
-            </button>
-            <button 
-              v-else 
-              @click="finishEdit('needs')" 
-              class="edit-btn finish"
-            >
-              完成编辑
-            </button>
-          </div>
-          
-          <div class="dimension-content">
-            <ul v-if="!editing.needs" class="item-list">
-              <li v-for="(item, index) in diagnosis.needs" :key="index">
-                {{ item }}
-              </li>
-            </ul>
-            
-            <div v-else class="edit-mode">
-              <div class="editable-list">
-                <div 
-                  v-for="(item, index) in diagnosis.needs" 
-                  :key="index" 
-                  class="editable-item"
-                >
-                  <input 
-                    v-model="diagnosis.needs[index]" 
-                    type="text" 
-                    class="edit-input"
-                  />
-                  <button @click="removeItem('needs', index)" class="remove-btn">
-                    ×
-                  </button>
-                </div>
-              </div>
-              <div class="add-item">
-                <input 
-                  v-model="newItems.needs" 
-                  @keyup.enter="addItem('needs')"
-                  type="text" 
-                  placeholder="添加新需求..." 
-                  class="add-input"
-                />
-                <button @click="addItem('needs')" class="add-btn">添加</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AI Insights -->
-      <div v-if="diagnosis.insights && diagnosis.insights.length > 0" class="insights-section">
-        <h3>AI 洞察</h3>
-        <div class="insights-list">
-          <div 
-            v-for="(insight, index) in diagnosis.insights" 
-            :key="index" 
-            class="insight-item"
-          >
-            <span class="insight-number">{{ index + 1 }}</span>
-            <p class="insight-text">{{ insight }}</p>
-          </div>
-        </div>
-      </div>
+      </section>
 
       <!-- Key Questions -->
-      <div v-if="diagnosis.key_questions && diagnosis.key_questions.length > 0" class="questions-section">
-        <h3>需要进一步了解</h3>
-        <div class="questions-list">
-          <div 
-            v-for="(question, index) in diagnosis.key_questions" 
-            :key="index" 
-            class="question-item"
-          >
+      <section v-if="diagnosis.key_questions?.length" class="ng-fade-in">
+        <h3 class="ng-section-title">需要进一步了解</h3>
+        <div class="question-list">
+          <div class="question-item" v-for="(q, i) in diagnosis.key_questions" :key="i">
             <span class="question-icon">❓</span>
-            <p class="question-text">{{ question }}</p>
+            <p>{{ q }}</p>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- Bottom Actions -->
-      <div class="bottom-actions">
-        <button 
-          @click="confirmDiagnosis" 
-          :disabled="confirming"
-          class="confirm-btn"
-        >
-          {{ confirming ? '确认中...' : '确认诊断' }}
+      <div class="bottom-actions ng-fade-in">
+        <button class="ng-btn ng-btn-primary ng-btn-block" :disabled="confirming" @click="confirmDiagnosis">
+          {{ confirming ? '确认中…' : (isCritical ? '确认并进入安全响应' : '确认诊断') }}
         </button>
-        <button 
-          @click="goToPlan" 
-          class="plan-btn"
-        >
+        <button v-if="!isCritical" class="ng-btn ng-btn-secondary ng-btn-block" @click="goToPlan">
           前往行动方案 →
         </button>
+        <p class="ai-note">AI 生成，仅供参考 · 你可以随时修正以上判断</p>
       </div>
     </div>
   </div>
@@ -359,109 +143,94 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { cases as casesApi } from '../../api'
+import { useToast } from '../../composables/useToast'
+import SkeletonCard from '../../components/SkeletonCard.vue'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const loading = ref(false)
 const confirming = ref(false)
 const error = ref('')
 const diagnosis = ref(null)
 
-const editing = reactive({
-  facts: false,
-  assumptions: false,
-  emotions: false,
-  needs: false
-})
+const dimensions = [
+  { key: 'facts', label: '事实', icon: '📋', chip: false },
+  { key: 'assumptions', label: '推测', icon: '💭', chip: false },
+  { key: 'emotions', label: '情绪', icon: '💖', chip: true },
+  { key: 'needs', label: '需求', icon: '🎯', chip: false },
+]
 
-const newItems = reactive({
-  facts: '',
-  assumptions: '',
-  emotions: '',
-  needs: ''
-})
+const editing = reactive({ facts: false, assumptions: false, emotions: false, needs: false })
+const newItems = reactive({ facts: '', assumptions: '', emotions: '', needs: '' })
+
+const lowConfidence = computed(() => (diagnosis.value?.confidence ?? 1) < 0.6)
+const isCritical = computed(() => diagnosis.value?.risk_level === 'red')
 
 const riskClass = computed(() => {
-  if (!diagnosis.value) return ''
-  const level = diagnosis.value.risk_level
-  if (level === 'low') return 'risk-green'
-  if (level === 'medium') return 'risk-yellow'
-  if (level === 'high') return 'risk-orange'
-  if (level === 'critical') return 'risk-red'
-  return ''
+  const map = { green: 'ng-risk-green', yellow: 'ng-risk-yellow', orange: 'ng-risk-orange', red: 'ng-risk-red' }
+  return map[diagnosis.value?.risk_level] || ''
 })
 
 const riskLabel = computed(() => {
-  if (!diagnosis.value) return ''
-  const level = diagnosis.value.risk_level
-  const labels = {
-    low: '低风险',
-    medium: '中风险',
-    high: '高风险',
-    critical: '严重风险'
-  }
-  return labels[level] || level
+  const labels = { green: '低风险', yellow: '中风险', orange: '高风险', red: '安全风险' }
+  return labels[diagnosis.value?.risk_level] || diagnosis.value?.risk_level || ''
 })
 
 async function loadDiagnosis() {
   loading.value = true
   error.value = ''
-  
   try {
     const caseId = route.params.id
-    // Check if case already has diagnosis
-    const caseData = await casesApi.get(caseId)
-    
+    const caseRes = await casesApi.get(caseId)
+    const caseData = caseRes.data
     if (caseData.diagnosis && caseData.diagnosis.summary) {
-      // Use existing diagnosis
       diagnosis.value = caseData.diagnosis
     } else {
-      // Try LLM diagnosis first, fallback to standard diagnosis
       try {
-        diagnosis.value = await casesApi.diagnoseLLM(caseId)
+        const res = await casesApi.diagnoseLLM(caseId)
+        diagnosis.value = res.data
       } catch (llmErr) {
         const status = llmErr.response?.status
-        if (status === 400 || status === 500) {
-          // LLM unavailable, fallback to standard diagnosis
-          diagnosis.value = await casesApi.diagnose(caseId)
+        if (status === 400 || status === 500 || status === 503) {
+          const res = await casesApi.diagnose(caseId)
+          diagnosis.value = res.data
         } else {
           throw llmErr
         }
       }
     }
+    // 确保字段存在
+    for (const d of dimensions) {
+      if (!Array.isArray(diagnosis.value[d.key])) diagnosis.value[d.key] = []
+    }
   } catch (err) {
-    error.value = '加载诊断结果失败: ' + (err.message || '未知错误')
+    error.value = err.message || '未知错误'
   } finally {
     loading.value = false
   }
 }
 
-function startEdit(dimension) {
-  editing[dimension] = true
-  newItems[dimension] = ''
+function toggleEdit(key) {
+  editing[key] = !editing[key]
+  newItems[key] = ''
 }
 
-function finishEdit(dimension) {
-  editing[dimension] = false
-  newItems[dimension] = ''
-}
-
-function addItem(dimension) {
-  const value = newItems[dimension].trim()
+function addItem(key) {
+  const value = newItems[key].trim()
   if (value) {
-    diagnosis.value[dimension].push(value)
-    newItems[dimension] = ''
+    diagnosis.value[key].push(value)
+    newItems[key] = ''
   }
 }
 
-function removeItem(dimension, index) {
-  diagnosis.value[dimension].splice(index, 1)
+function removeItem(key, index) {
+  diagnosis.value[key].splice(index, 1)
 }
 
 async function confirmDiagnosis() {
   confirming.value = true
-  
   try {
     const caseId = route.params.id
     await casesApi.confirmDiagnosis(caseId, {
@@ -469,482 +238,279 @@ async function confirmDiagnosis() {
       assumptions: diagnosis.value.assumptions,
       emotions: diagnosis.value.emotions,
       needs: diagnosis.value.needs,
-      risk_level: diagnosis.value.risk_level
+      risk_level: diagnosis.value.risk_level,
     })
-    
-    alert('诊断已确认')
+    toast.success('诊断已确认')
+    // 红色风险 → 安全响应页（PRD：不进入普通沟通建议）
+    if (isCritical.value) {
+      setTimeout(() => router.replace(`/resident/case/${caseId}/safety`), 600)
+    }
   } catch (err) {
-    alert('确认失败: ' + (err.message || '未知错误'))
+    toast.error('确认失败: ' + (err.message || '未知错误'))
   } finally {
     confirming.value = false
   }
 }
 
 function goToPlan() {
-  const caseId = route.params.id
-  router.push(`/resident/cases/${caseId}/plan`)
+  router.push(`/resident/case/${route.params.id}/plan`)
 }
 
-onMounted(() => {
-  loadDiagnosis()
-})
+onMounted(loadDiagnosis)
 </script>
 
 <style scoped>
-.diagnosis-result-page {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 16px;
-  min-height: 100vh;
-  background: #FFF9F0;
+.diagnosis-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-4);
 }
 
-.header {
+.page-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  padding-top: var(--ng-space-2);
 }
-
-.back-btn {
-  background: #fff;
-  border: 1px solid #E0D8CE;
-  border-radius: 8px;
+.icon-btn {
   width: 40px;
   height: 40px;
+  border-radius: var(--ng-radius-btn);
+  background: var(--ng-bg-card);
+  border: 1px solid var(--ng-border);
+  font-size: 20px;
+  color: var(--ng-text-main);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  color: #2D2A26;
+  transition: background var(--ng-dur-fast);
 }
+.icon-btn:active { background: var(--ng-bg-subtle); }
+.header-spacer { width: 40px; }
 
-.back-btn:active {
-  background: #F5F0E8;
-}
-
-.header h1 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0;
-}
-
-.loading-state,
-.error-state {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #E0D8CE;
-  border-top-color: #E8A33D;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 16px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-state p,
-.error-state p {
-  color: #6B6560;
-  font-size: 14px;
-  margin: 8px 0;
-}
-
-.retry-btn {
-  margin-top: 12px;
-  padding: 8px 20px;
-  background: #E8A33D;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.content {
+.loading-stack {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--ng-card-gap);
 }
 
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+  flex-wrap: wrap;
+}
 .ai-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #E8A33D;
+  background: var(--ng-primary);
   color: #fff;
-  padding: 6px 14px;
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 600;
-  align-self: flex-start;
+  padding: 5px 14px;
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-title);
+}
+.ai-badge--local {
+  background: var(--ng-bg-subtle);
+  color: var(--ng-text-secondary);
+}
+.uncertain-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux);
+  background: var(--ng-risk-yellow-soft);
+  color: #8D6E00;
 }
 
-.ai-badge-icon {
-  font-size: 14px;
-  line-height: 1;
+.content-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-4);
 }
 
-.summary-text--large {
-  font-size: 17px;
-  font-weight: 500;
-  line-height: 1.7;
-}
-
-.summary-card {
-  background: linear-gradient(135deg, #FDE8C8 0%, #FFF3E0 100%);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
+.summary-card { padding: var(--ng-space-5); }
 .summary-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ng-space-2);
 }
-
-.summary-header h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0;
-}
-
-.risk-badge {
-  padding: 6px 14px;
-  border-radius: 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.risk-green {
-  background: #4CAF50;
-}
-
-.risk-yellow {
-  background: #FFC107;
-  color: #2D2A26;
-}
-
-.risk-orange {
-  background: #FF9800;
-}
-
-.risk-red {
-  background: #F44336;
-}
-
+.summary-title { margin-bottom: 0; }
 .summary-text {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #2D2A26;
-  margin: 0 0 16px 0;
-}
-
-.confidence-section {
-  margin-top: 16px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-3) 0;
 }
 
 .confidence-label {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
   margin-bottom: 6px;
 }
-
-.confidence-value {
-  font-weight: 600;
-  color: #E8A33D;
-}
-
+.confidence-value { font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); }
 .confidence-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--ng-radius-pill);
   overflow: hidden;
 }
-
 .confidence-fill {
   height: 100%;
-  background: #E8A33D;
-  border-radius: 3px;
-  transition: width 0.3s ease;
+  background: var(--ng-gradient-btn);
+  border-radius: var(--ng-radius-pill);
+  transition: width var(--ng-dur-slow) var(--ng-ease);
+}
+.confidence-note {
+  margin-top: var(--ng-space-2);
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
 }
 
-.dimensions-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0 0 12px 0;
-}
-
-.dimension-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  border: 1px solid #E0D8CE;
-}
-
+.dimensions { display: flex; flex-direction: column; gap: var(--ng-card-gap); }
+.dimensions .ng-section-title { margin-bottom: 0; }
+.dimension-card { padding: var(--ng-card-padding); }
 .dimension-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ng-space-3);
 }
-
 .dimension-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ng-space-2);
   font-size: 15px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
 }
-
-.icon {
-  font-size: 18px;
-}
+.dimension-icon { font-size: 18px; }
 
 .edit-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   background: transparent;
-  border: 1px solid #E8A33D;
-  color: #E8A33D;
-  border-radius: 6px;
-  font-size: 13px;
+  border: 1px solid var(--ng-primary);
+  color: var(--ng-primary);
+  border-radius: var(--ng-radius-tag);
+  font-size: var(--ng-fs-aux);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ng-dur-fast);
 }
-
+.edit-btn--active,
 .edit-btn:active {
-  background: #E8A33D;
+  background: var(--ng-primary);
   color: #fff;
 }
 
-.edit-btn.finish {
-  background: #E8A33D;
-  color: #fff;
-}
-
-.dimension-content {
-  color: #2D2A26;
-}
-
-.item-list {
-  margin: 0;
-  padding-left: 20px;
-}
-
+.item-list { margin: 0; padding-left: 20px; }
 .item-list li {
-  font-size: 14px;
+  font-size: var(--ng-fs-body);
   line-height: 1.8;
-  color: #2D2A26;
+  color: var(--ng-text-main);
 }
+.empty-hint { color: var(--ng-text-hint); font-size: var(--ng-fs-aux); list-style: none; }
 
-.tag-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
+.chip-row { display: flex; flex-wrap: wrap; gap: var(--ng-space-2); }
 .chip {
-  background: #FDE8C8;
-  color: #2D2A26;
-  padding: 6px 14px;
-  border-radius: 16px;
-  font-size: 13px;
+  background: var(--ng-primary-soft);
+  color: var(--ng-primary-deep);
+  padding: 5px 14px;
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux);
 }
 
-.edit-mode {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.editable-list,
-.editable-chips {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.editable-item,
-.editable-chip {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.edit-input,
-.chip-input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #E0D8CE;
-  border-radius: 6px;
-  font-size: 14px;
-  color: #2D2A26;
-  background: #FFF9F0;
-}
-
-.edit-input:focus,
-.chip-input:focus {
-  outline: none;
-  border-color: #E8A33D;
-}
-
-.remove-btn,
-.chip-remove {
+.edit-mode { display: flex; flex-direction: column; gap: var(--ng-space-2); }
+.edit-row { display: flex; gap: var(--ng-space-2); align-items: center; }
+.edit-input { padding: 8px 12px; font-size: var(--ng-fs-aux); }
+.remove-btn {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #F44336;
-  color: #fff;
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
   border: none;
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-.add-item {
-  display: flex;
-  gap: 8px;
-}
-
-.add-input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #E0D8CE;
-  border-radius: 6px;
-  font-size: 14px;
-  color: #2D2A26;
-  background: #fff;
-}
-
-.add-input:focus {
-  outline: none;
-  border-color: #E8A33D;
-}
-
 .add-btn {
-  padding: 8px 16px;
-  background: #E8A33D;
+  padding: 8px 14px;
+  background: var(--ng-primary);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: var(--ng-radius-input);
+  font-size: var(--ng-fs-aux);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
-.insights-section h3,
-.questions-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0 0 12px 0;
-}
-
-.insights-list,
-.questions-list {
+.insight-list,
+.question-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--ng-card-gap);
 }
-
-.insight-item,
-.question-item {
+.insight-item {
   display: flex;
-  gap: 12px;
+  gap: var(--ng-space-3);
   align-items: flex-start;
-  background: #fff;
-  padding: 14px;
-  border-radius: 8px;
-  border: 1px solid #E0D8CE;
+  padding: 14px var(--ng-card-padding);
 }
-
-.insight-number {
+.insight-item p {
+  margin: 0;
+  font-size: var(--ng-fs-body);
+  line-height: var(--ng-lh);
+  color: var(--ng-text-main);
+}
+.insight-num {
   width: 24px;
   height: 24px;
-  background: #E8A33D;
+  background: var(--ng-primary);
   color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-title);
   flex-shrink: 0;
 }
-
-.question-icon {
-  font-size: 18px;
-  flex-shrink: 0;
+.question-item {
+  display: flex;
+  gap: var(--ng-space-3);
+  align-items: flex-start;
+  background: var(--ng-bg-card);
+  border: 1px solid var(--ng-border);
+  border-radius: var(--ng-radius-card);
+  padding: 14px var(--ng-card-padding);
 }
-
-.insight-text,
-.question-text {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #2D2A26;
+.question-item p {
   margin: 0;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
+  line-height: var(--ng-lh);
 }
+.question-icon { flex-shrink: 0; }
 
 .bottom-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
-  padding-bottom: 20px;
+  gap: var(--ng-space-3);
+  padding-bottom: var(--ng-space-5);
 }
-
-.confirm-btn,
-.plan-btn {
-  padding: 14px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.confirm-btn {
-  background: #E8A33D;
-  color: #fff;
-}
-
-.confirm-btn:disabled {
-  background: #E0D8CE;
-  cursor: not-allowed;
-}
-
-.confirm-btn:not(:disabled):active {
-  background: #D6922E;
-}
-
-.plan-btn {
-  background: #fff;
-  color: #E8A33D;
-  border: 2px solid #E8A33D;
-}
-
-.plan-btn:active {
-  background: #FFF3E0;
+.ai-note {
+  text-align: center;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
 }
 </style>

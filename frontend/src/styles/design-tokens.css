@@ -1,0 +1,383 @@
+/* ============================================================
+   邻光 NeighborGlow 全局设计令牌
+   依据：PRD v1.1 · 11.4 设计系统规范
+   主色暖琥珀 | 奶油白背景 | 四级风险色 | 8px 基准网格
+   ============================================================ */
+
+:root {
+  /* ---------- 色彩 · 品牌 ---------- */
+  --ng-primary: #E8A33D;            /* 暖琥珀 */
+  --ng-primary-dark: #D4922E;       /* 按压/悬停 */
+  --ng-primary-deep: #B07A20;       /* 深琥珀文字 */
+  --ng-primary-light: #F0B85C;      /* 深色模式主色 */
+  --ng-primary-soft: #FDE8C8;       /* 琥珀浅底 */
+  --ng-primary-soft2: #FFF3E0;      /* 琥珀更浅底 */
+  --ng-primary-tint: rgba(232, 163, 61, 0.15);
+
+  /* ---------- 色彩 · 背景 ---------- */
+  --ng-bg-mobile: #FFF9F0;          /* 移动端奶油白 */
+  --ng-bg-desktop: #FFFFFF;         /* 桌面工作台纯白 */
+  --ng-bg-card: #FFFFFF;
+  --ng-bg-subtle: #F5F0E8;          /* 次级底 */
+
+  /* ---------- 色彩 · 四级风险 ---------- */
+  --ng-risk-green: #4CAF50;
+  --ng-risk-yellow: #FFC107;
+  --ng-risk-orange: #FF9800;
+  --ng-risk-red: #F44336;
+  --ng-risk-green-soft: #E8F5E9;
+  --ng-risk-yellow-soft: #FFF8E1;
+  --ng-risk-orange-soft: #FFF3E0;
+  --ng-risk-red-soft: #FFEBEE;
+
+  /* ---------- 色彩 · 文字 ---------- */
+  --ng-text-main: #2D2A26;
+  --ng-text-secondary: #6B6560;
+  --ng-text-hint: #9E9893;
+  --ng-text-inverse: #FFFFFF;
+
+  /* ---------- 色彩 · 边框 ---------- */
+  --ng-border: #EDE5D8;             /* 暖边框 */
+  --ng-border-strong: #E0D8CE;
+
+  /* ---------- 圆角 ---------- */
+  --ng-radius-card: 16px;
+  --ng-radius-btn: 12px;
+  --ng-radius-input: 12px;
+  --ng-radius-tag: 8px;
+  --ng-radius-pill: 999px;
+
+  /* ---------- 间距（8px 基准网格） ---------- */
+  --ng-space-1: 4px;
+  --ng-space-2: 8px;
+  --ng-space-3: 12px;
+  --ng-space-4: 16px;
+  --ng-space-5: 20px;
+  --ng-space-6: 24px;
+  --ng-space-8: 32px;
+  --ng-page-margin-mobile: 20px;
+  --ng-page-margin-desktop: 32px;
+  --ng-card-padding: 16px;
+  --ng-card-gap: 12px;
+
+  /* ---------- 阴影 ---------- */
+  --ng-shadow-card: 0 2px 8px rgba(45, 42, 38, 0.05);
+  --ng-shadow-card-hover: 0 4px 16px rgba(45, 42, 38, 0.09);
+  --ng-shadow-float: 0 8px 24px rgba(45, 42, 38, 0.14);
+  --ng-shadow-btn: 0 2px 6px rgba(232, 163, 61, 0.3);
+
+  /* ---------- 字体 ---------- */
+  --ng-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --ng-fw-title: 600;
+  --ng-fw-body: 400;
+  --ng-fw-strong: 500;
+  --ng-fs-page: 20px;     /* 页面标题 */
+  --ng-fs-card: 16px;     /* 卡片标题 */
+  --ng-fs-body: 14px;     /* 正文 */
+  --ng-fs-aux: 13px;      /* 辅助 */
+  --ng-fs-small: 12px;    /* 小字 */
+  --ng-lh: 1.6;
+
+  /* ---------- 渐变 ---------- */
+  --ng-gradient-hero: linear-gradient(135deg, #FDE8C8 0%, #FFF3E0 100%);
+  --ng-gradient-btn: linear-gradient(135deg, #F0B85C 0%, #E8A33D 100%);
+
+  /* ---------- 动效 ---------- */
+  --ng-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ng-dur-fast: 0.15s;
+  --ng-dur-base: 0.25s;
+  --ng-dur-slow: 0.4s;
+}
+
+/* ============================================================
+   全局基础
+   ============================================================ */
+body {
+  font-family: var(--ng-font-family);
+  background: var(--ng-bg-mobile);
+  color: var(--ng-text-main);
+  line-height: var(--ng-lh);
+  font-size: var(--ng-fs-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   公共组件类
+   ============================================================ */
+
+/* ---------- 页面容器（移动端） ---------- */
+.ng-page {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--ng-bg-mobile);
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile) 96px;
+}
+
+/* ---------- 卡片 ---------- */
+.ng-card {
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding);
+  box-shadow: var(--ng-shadow-card);
+  border: 1px solid var(--ng-border);
+}
+
+.ng-card--hero {
+  background: var(--ng-gradient-hero);
+  border: none;
+}
+
+/* ---------- 按钮 ---------- */
+.ng-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ng-space-2);
+  border: none;
+  border-radius: var(--ng-radius-btn);
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: var(--ng-fw-title);
+  font-family: var(--ng-font-family);
+  cursor: pointer;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+  user-select: none;
+}
+
+.ng-btn-primary {
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
+  box-shadow: var(--ng-shadow-btn);
+}
+.ng-btn-primary:hover { background: var(--ng-primary-dark); }
+.ng-btn-primary:active { transform: scale(0.98); }
+.ng-btn-primary:disabled {
+  background: var(--ng-border-strong);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.ng-btn-secondary {
+  background: var(--ng-bg-card);
+  color: var(--ng-primary);
+  border: 1.5px solid var(--ng-primary);
+}
+.ng-btn-secondary:hover { background: var(--ng-primary-soft2); }
+.ng-btn-secondary:active { transform: scale(0.98); }
+
+.ng-btn-ghost {
+  background: transparent;
+  color: var(--ng-text-secondary);
+  border: 1px solid var(--ng-border-strong);
+}
+.ng-btn-ghost:hover { background: var(--ng-bg-subtle); }
+
+.ng-btn-block { width: 100%; }
+
+/* ---------- 风险徽章（填充式，PRD 要求） ---------- */
+.ng-risk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-inverse);
+}
+.ng-risk-green  { background: var(--ng-risk-green); }
+.ng-risk-yellow { background: var(--ng-risk-yellow); color: var(--ng-text-main); }
+.ng-risk-orange { background: var(--ng-risk-orange); }
+.ng-risk-red    { background: var(--ng-risk-red); }
+
+/* 风险浅底变体（用于列表行/标签） */
+.ng-risk-soft-green  { background: var(--ng-risk-green-soft);  color: #2E7D32; }
+.ng-risk-soft-yellow { background: var(--ng-risk-yellow-soft); color: #8D6E00; }
+.ng-risk-soft-orange { background: var(--ng-risk-orange-soft); color: #C56000; }
+.ng-risk-soft-red    { background: var(--ng-risk-red-soft);    color: #C62828; }
+
+/* ---------- 标签 ---------- */
+.ng-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--ng-radius-tag);
+  font-size: var(--ng-fs-small);
+  background: var(--ng-primary-soft);
+  color: var(--ng-primary-deep);
+}
+
+/* ---------- 输入框 ---------- */
+.ng-input,
+.ng-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-input);
+  font-size: var(--ng-fs-body);
+  font-family: var(--ng-font-family);
+  color: var(--ng-text-main);
+  background: var(--ng-bg-card);
+  transition: border-color var(--ng-dur-fast) var(--ng-ease),
+              box-shadow var(--ng-dur-fast) var(--ng-ease);
+}
+.ng-input:focus,
+.ng-textarea:focus {
+  outline: none;
+  border-color: var(--ng-primary);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
+}
+
+/* ---------- 空状态 ---------- */
+.ng-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px var(--ng-space-5);
+  gap: var(--ng-space-3);
+}
+.ng-empty-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--ng-gradient-hero);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin-bottom: var(--ng-space-2);
+}
+.ng-empty-title {
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+}
+.ng-empty-desc {
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-secondary);
+  max-width: 280px;
+}
+
+/* ---------- 骨架屏 ---------- */
+.ng-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #F0E9DE;
+  border-radius: var(--ng-radius-tag);
+}
+.ng-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: ng-shimmer 1.4s infinite;
+}
+@keyframes ng-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+.ng-skeleton-card {
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding);
+  border: 1px solid var(--ng-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-3);
+}
+
+/* ---------- AI 降级提示条 ---------- */
+.ng-degrade-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--ng-space-2);
+  background: var(--ng-risk-yellow-soft);
+  border: 1px solid var(--ng-risk-yellow);
+  color: #8D6E00;
+  border-radius: var(--ng-radius-btn);
+  padding: 10px 14px;
+  font-size: var(--ng-fs-aux);
+}
+
+/* ---------- Toast ---------- */
+.ng-toast-wrap {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-2);
+  pointer-events: none;
+}
+.ng-toast {
+  background: rgba(45, 42, 38, 0.92);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-body);
+  box-shadow: var(--ng-shadow-float);
+  animation: ng-toast-in var(--ng-dur-base) var(--ng-ease);
+  max-width: 86vw;
+}
+.ng-toast--success { background: rgba(46, 125, 50, 0.94); }
+.ng-toast--error   { background: rgba(198, 40, 40, 0.94); }
+@keyframes ng-toast-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- 加载 Spinner ---------- */
+.ng-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary);
+  border-radius: 50%;
+  animation: ng-spin 0.8s linear infinite;
+}
+@keyframes ng-spin { to { transform: rotate(360deg); } }
+
+/* ---------- 安全响应横幅（红色风险） ---------- */
+.ng-safety-banner {
+  display: flex;
+  gap: var(--ng-space-3);
+  align-items: flex-start;
+  background: linear-gradient(135deg, #FFF0EE, #FFE0DB);
+  border: 1.5px solid var(--ng-risk-red);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding);
+}
+
+/* ---------- 通用动效 ---------- */
+.ng-fade-in { animation: ng-fade-in var(--ng-dur-slow) var(--ng-ease) both; }
+@keyframes ng-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ng-section-title {
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin-bottom: var(--ng-space-3);
+}
+
+.ng-page-title {
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+}
+
+/* 桌面端响应式 */
+@media (min-width: 1024px) {
+  .ng-page--desktop {
+    max-width: none;
+    background: var(--ng-bg-desktop);
+    padding: var(--ng-page-margin-desktop);
+  }
+}

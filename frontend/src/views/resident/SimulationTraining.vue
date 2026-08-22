@@ -6,8 +6,30 @@
       <span class="header-spacer"></span>
     </header>
 
+    <!-- Critical-risk safety block -->
+    <main v-if="phase === 'blocked'" class="blocked-phase">
+      <div class="blocked-card">
+        <div class="blocked-hero">
+          <span class="blocked-icon">&#x1F6E1;&#xFE0F;</span>
+          <h2>模拟训练已暂停</h2>
+        </div>
+        <p class="blocked-text">
+          AI 判断当前案例可能涉及人身安全风险（红色风险）。出于对你的保护，
+          系统暂不提供模拟对话与直接沟通建议，请优先查看安全响应指引。
+        </p>
+        <div class="blocked-actions">
+          <button class="btn-danger" @click="$router.replace(`/resident/case/${caseId}/safety`)">
+            查看安全响应 &rarr;
+          </button>
+          <button class="btn-secondary" @click="$router.push(`/resident/case/${caseId}`)">
+            返回案例
+          </button>
+        </div>
+      </div>
+    </main>
+
     <!-- Pre-simulation setup -->
-    <main v-if="phase === 'setup'" class="setup-phase">
+    <main v-else-if="phase === 'setup'" class="setup-phase">
       <div class="setup-card">
         <div class="setup-icon">&#x1F3AD;</div>
         <h2>选择对方风格</h2>
@@ -42,21 +64,34 @@
     <!-- Chat interface -->
     <main v-else-if="phase === 'chat'" class="chat-phase">
       <div class="chat-area" ref="chatArea">
-        <div
-          v-for="(msg, idx) in conversation"
-          :key="idx"
-          class="msg-row"
-          :class="msg.role === 'user' ? 'msg-right' : 'msg-left'"
-        >
-          <div v-if="msg.role !== 'user'" class="avatar neighbor-avatar">&#x1F9D1;&#x200D;&#x1F91D;&#x200D;&#x1F9D1;</div>
-          <div class="bubble-col" :class="msg.role === 'user' ? 'bubble-col-right' : 'bubble-col-left'">
-            <div class="bubble" :class="msg.role === 'user' ? 'bubble-user' : 'bubble-neighbor'">
-              {{ msg.displayContent || msg.content }}
+        <template v-for="(msg, idx) in conversation" :key="idx">
+          <!-- 教练反馈卡（PRD 11.6：每轮表达获得具体反馈和优化版本） -->
+          <div v-if="msg.role === 'coach'" class="coach-msg">
+            <div class="coach-msg-head">
+              <span class="coach-msg-icon">&#x1F3AF;</span>
+              <span class="coach-msg-title">教练反馈 · 第 {{ msg.round }} 轮</span>
+              <span class="coach-score-chip">{{ msg.score }}/10</span>
             </div>
-            <span class="msg-time">{{ formatTime(msg.time) }}</span>
+            <ul v-if="msg.suggestions && msg.suggestions.length" class="coach-msg-list">
+              <li v-for="(s, i) in msg.suggestions" :key="i">{{ s }}</li>
+            </ul>
+            <div v-if="msg.improved_version" class="coach-improved">
+              <span class="coach-improved-label">&#x2728; 优化参考</span>
+              <p>{{ msg.improved_version }}</p>
+            </div>
           </div>
-          <div v-if="msg.role === 'user'" class="avatar user-avatar">&#x1F60A;</div>
-        </div>
+
+          <div v-else class="msg-row" :class="msg.role === 'user' ? 'msg-right' : 'msg-left'">
+            <div v-if="msg.role !== 'user'" class="avatar neighbor-avatar">&#x1F9D1;&#x200D;&#x1F91D;&#x200D;&#x1F9D1;</div>
+            <div class="bubble-col" :class="msg.role === 'user' ? 'bubble-col-right' : 'bubble-col-left'">
+              <div class="bubble" :class="msg.role === 'user' ? 'bubble-user' : 'bubble-neighbor'">
+                {{ msg.displayContent || msg.content }}
+              </div>
+              <span class="msg-time">{{ formatTime(msg.time) }}</span>
+            </div>
+            <div v-if="msg.role === 'user'" class="avatar user-avatar">&#x1F60A;</div>
+          </div>
+        </template>
 
         <div v-if="sending" class="msg-row msg-left">
           <div class="avatar neighbor-avatar">&#x1F9D1;&#x200D;&#x1F91D;&#x200D;&#x1F9D1;</div>
@@ -128,7 +163,7 @@
           </svg>
           <div class="score-value">{{ score }}</div>
         </div>
-        <p class="score-label">沟通评分</p>
+        <p class="score-label">沟通评分 · 共 {{ rounds }} 轮对话</p>
 
         <div v-if="feedbackList.length" class="feedback-section">
           <h3>教练反馈</h3>
@@ -140,9 +175,23 @@
           </ul>
         </div>
 
+        <div v-if="finalVersion" class="final-section">
+          <div class="final-head">
+            <h3>最终沟通版本</h3>
+            <button class="btn-copy" type="button" @click="copyFinalVersion">
+              {{ copied ? '已复制' : '复制' }}
+            </button>
+          </div>
+          <div class="final-text">{{ finalVersion }}</div>
+          <p class="final-hint">该版本综合了本次训练要点，可直接用于现实沟通，也可根据当时情境微调。</p>
+        </div>
+
         <div class="result-actions">
-          <button class="btn-primary" @click="restart">重新开始</button>
-          <button class="btn-secondary" @click="$router.push(`/resident/cases/${caseId}`)">
+          <button class="btn-primary" :disabled="recorded" @click="recordAction">
+            {{ recorded ? '已记录现实行动' : '记录现实行动' }}
+          </button>
+          <button class="btn-secondary" @click="restart">再练一次</button>
+          <button class="btn-text" @click="$router.push(`/resident/case/${caseId}`)">
             返回案例 &rarr;
           </button>
         </div>
@@ -152,14 +201,29 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { cases as casesApi, ai as aiApi } from '../../api'
+import { useToast } from '../../composables'
 
 const route = useRoute()
 const caseId = route.params.id
+const toast = useToast()
 
-const phase = ref('setup') // setup | chat | result
+const phase = ref('setup') // setup | chat | result | blocked
+
+// Critical-risk guard: red-risk cases must not enter simulation (PRD safety bottom line)
+onMounted(async () => {
+  try {
+    const res = await casesApi.get(caseId)
+    const risk = res.data?.risk_level || res.data?.case?.risk_level
+    if (risk === 'red') {
+      phase.value = 'blocked'
+    }
+  } catch (e) {
+    console.error('Failed to check case risk level', e)
+  }
+})
 
 // Style options
 const styleOptions = [
@@ -192,6 +256,10 @@ let recognition = null
 // Result state
 const score = ref(0)
 const feedbackList = ref([])
+const rounds = ref(0)
+const finalVersion = ref('')
+const recorded = ref(false)
+const copied = ref(false)
 
 // Computed
 const circumference = 2 * Math.PI * 52
@@ -249,7 +317,7 @@ function initSpeechRecognition() {
 
 function toggleVoice() {
   if (!recognition) recognition = initSpeechRecognition()
-  if (!recognition) { alert('当前浏览器不支持语音识别'); return }
+  if (!recognition) { toast.error('当前浏览器不支持语音识别'); return }
   if (isRecording.value) { recognition.stop() }
   else { recognition.start(); isRecording.value = true }
 }
@@ -285,6 +353,7 @@ async function startSimulation() {
     // Initialize conversation with timestamps for any initial messages
     conversation.value = (data.conversation || []).map(m => ({
       ...m,
+      role: m.role === 'counterpart' ? 'neighbor' : m.role,
       time: m.time || Date.now(),
       displayContent: m.content,
     }))
@@ -336,6 +405,10 @@ async function sendMessage() {
 
       // Typing effect
       await typeMessage(neighborMsg, replyText)
+
+      // PRD 11.6: 同步本轮到服务端，获取具体反馈和优化版本
+      const fb = await logRoundToServer(text, replyText)
+      pushCoachMessage(fb)
     } else {
       // Empty AI reply, fallback
       throw new Error('Empty AI response')
@@ -346,21 +419,18 @@ async function sendMessage() {
     try {
       const res = await casesApi.sendSimMessage(caseId, simId.value, { content: text })
       const data = res.data
-      // Replace conversation with server version (includes neighbor reply)
+      // 只取服务端对方回复追加，避免覆盖本地已有的教练反馈卡
       const serverConv = data.conversation || []
-      if (serverConv.length > 0) {
-        conversation.value = serverConv.map(m => ({
-          ...m,
-          time: m.time || Date.now(),
-          displayContent: m.content,
-        }))
+      const lastNeighbor = [...serverConv].reverse().find(m => m.role === 'counterpart')
+      if (lastNeighbor) {
+        const neighborMsg = { role: 'neighbor', content: lastNeighbor.content, time: Date.now() }
+        conversation.value.push(neighborMsg)
+        scrollToBottom()
+        await typeMessage(neighborMsg, lastNeighbor.content)
       }
 
-      // Extract coach tip from the last neighbor message
-      const lastNeighbor = [...(serverConv || [])].reverse().find(m => m.role === 'neighbor')
-      if (lastNeighbor && lastNeighbor.coach_tip) {
-        currentTip.value = lastNeighbor.coach_tip
-      }
+      // PRD 11.6: 展示本轮教练反馈与优化版本
+      pushCoachMessage(data.feedback)
 
       scrollToBottom()
     } catch (fallbackError) {
@@ -391,24 +461,96 @@ function restart() {
   inputText.value = ''
   score.value = 0
   feedbackList.value = []
+  rounds.value = 0
+  finalVersion.value = ''
+  recorded.value = false
+  copied.value = false
   if (isRecording.value && recognition) {
     recognition.stop()
   }
 }
 
+// PRD 11.6: 把本轮对话同步到服务端，换取具体反馈与优化版本
+async function logRoundToServer(text, counterpartReply) {
+  try {
+    const res = await casesApi.sendSimMessage(caseId, simId.value, {
+      content: text,
+      counterpart_reply: counterpartReply,
+    })
+    return res.data?.feedback || null
+  } catch (e) {
+    console.warn('Round feedback unavailable', e)
+    return null
+  }
+}
+
+function pushCoachMessage(fb) {
+  if (!fb) return
+  const hasSuggestions = Array.isArray(fb.suggestions) && fb.suggestions.length > 0
+  if (!hasSuggestions && !fb.improved_version) return
+  conversation.value.push({
+    role: 'coach',
+    round: fb.round || userMsgCount.value,
+    score: typeof fb.score === 'number' ? fb.score : '-',
+    suggestions: fb.suggestions || [],
+    improved_version: fb.improved_version || '',
+    time: Date.now(),
+  })
+  scrollToBottom()
+}
+
+// PRD 11.6: 记录现实行动 —— 训练成果落到真实跟进记录
+async function recordAction() {
+  try {
+    await casesApi.createFollowup(caseId, {
+      action_taken: `完成模拟训练（${rounds.value} 轮，评分 ${score.value}），计划使用最终沟通版本与邻居进行现实沟通`,
+      is_escalated: false,
+    })
+    recorded.value = true
+    toast.success('已记录现实行动，沟通后记得回来记录对方回应')
+  } catch (e) {
+    console.error('Failed to record real action', e)
+    toast.error('记录失败，请稍后再试')
+  }
+}
+
+async function copyFinalVersion() {
+  const text = finalVersion.value
+  if (!text) return
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    copied.value = true
+    toast.success('已复制，可直接发给邻居或当面参考')
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch (e) {
+    toast.error('复制失败，请手动长按选择文本')
+  }
+}
+
 watch(phase, async (val) => {
   if (val === 'result') {
-    if (!score.value) {
-      try {
-        const res = await casesApi.sendSimMessage(caseId, simId.value, { content: '[END]' })
-        const data = res.data
-        score.value = data.score || 0
-        if (data.feedback) {
-          feedbackList.value = parseFeedback(data.feedback)
-        }
-      } catch (e) {
-        score.value = 0
-      }
+    try {
+      // [END] 不会被写入对话，仅聚合逐轮反馈并产出最终沟通版本
+      const res = await casesApi.sendSimMessage(caseId, simId.value, { content: '[END]' })
+      const data = res.data
+      score.value = Math.round((data.score || 0) * 10)
+      rounds.value = data.rounds || userMsgCount.value
+      finalVersion.value = data.final_version || ''
+      feedbackList.value = parseFeedback(data.feedback)
+    } catch (e) {
+      score.value = 0
+      rounds.value = userMsgCount.value
     }
   }
 })
@@ -467,6 +609,73 @@ function parseFeedback(feedback) {
 }
 .header-spacer {
   width: 40px;
+}
+
+/* ========== Blocked Phase (red risk) ========== */
+.blocked-phase {
+  flex: 1;
+  padding: 24px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.blocked-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  width: 100%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  border-top: 4px solid var(--ng-risk-red);
+  animation: ng-fade-in 0.3s ease;
+}
+.blocked-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.blocked-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FDECEA, #FAD4D0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+.blocked-card h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ng-risk-red);
+}
+.blocked-text {
+  font-size: 14px;
+  color: var(--ng-text-secondary);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+.blocked-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.btn-danger {
+  background: var(--ng-risk-red);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+.btn-danger:hover {
+  background: #D9362B;
 }
 
 /* ========== Setup Phase ========== */
@@ -722,6 +931,66 @@ function parseFeedback(feedback) {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* 每轮教练反馈卡 */
+.coach-msg {
+  margin: 4px 8px 14px;
+  padding: 12px 14px;
+  background: var(--ng-primary-soft2);
+  border: 1px solid #F5D9A8;
+  border-radius: var(--ng-radius-card);
+  animation: fadeSlideUp 0.3s ease;
+}
+.coach-msg-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.coach-msg-icon {
+  font-size: 14px;
+}
+.coach-msg-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ng-primary-deep);
+}
+.coach-score-chip {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ng-primary-deep);
+  background: var(--ng-primary-soft);
+  border-radius: var(--ng-radius-pill);
+  padding: 2px 10px;
+}
+.coach-msg-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--ng-text-secondary);
+  line-height: 1.6;
+}
+.coach-improved {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  border-radius: var(--ng-radius-tag);
+  border: 1px dashed var(--ng-primary);
+}
+.coach-improved-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ng-primary-deep);
+  margin-bottom: 4px;
+}
+.coach-improved p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ng-text-main);
+  line-height: 1.6;
+}
+
 /* Input bar */
 .input-bar {
   display: flex;
@@ -924,6 +1193,52 @@ function parseFeedback(feedback) {
   font-size: 16px;
 }
 
+/* 最终沟通版本 */
+.final-section {
+  text-align: left;
+  margin-bottom: 24px;
+  background: var(--ng-primary-soft2);
+  border: 1px solid #F5D9A8;
+  border-radius: var(--ng-radius-card);
+  padding: 16px;
+}
+.final-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.final-head h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ng-text-main);
+}
+.btn-copy {
+  border: 1px solid var(--ng-primary);
+  background: #fff;
+  color: var(--ng-primary-deep);
+  border-radius: var(--ng-radius-tag);
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-copy:hover {
+  background: var(--ng-primary-soft);
+}
+.final-text {
+  white-space: pre-line;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ng-text-main);
+}
+.final-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ng-text-hint);
+  line-height: 1.5;
+}
+
 .result-actions {
   display: flex;
   flex-direction: column;
@@ -943,5 +1258,17 @@ function parseFeedback(feedback) {
 .btn-secondary:hover {
   background: #E8A33D;
   color: #fff;
+}
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--ng-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 0.2s;
+}
+.btn-text:hover {
+  color: var(--ng-primary);
 }
 </style>

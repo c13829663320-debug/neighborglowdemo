@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAIDegradation } from '../composables/useAIDegradation'
 const api = axios.create({
   baseURL: '/api',
   timeout: 15000,
@@ -13,6 +14,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    // AI 服务降级检测（PRD：503 → 客户端切换基础模式并提示）
+    const status = err.response?.status
+    if (status === 503 || (status === 500 && err.config?.url?.includes('/ai'))) {
+      try {
+        const { reportDegrade } = useAIDegradation()
+        reportDegrade()
+      } catch (e) { /* noop */ }
+    }
     // 登录请求的 401 不拦截，让页面自己处理错误提示
     const isLoginRequest = err.config?.url?.includes('/auth/login')
     if (err.response?.status === 401 && !isLoginRequest) {
@@ -83,6 +92,7 @@ export const community = {
 }
 export const ai = {
   chat: (data) => api.post('/ai/chat', data),
+  chatSubmit: (data) => api.post('/ai/chat-submit', data),
 }
 
 export default api

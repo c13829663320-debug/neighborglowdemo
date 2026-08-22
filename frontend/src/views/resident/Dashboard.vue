@@ -28,7 +28,11 @@
           <a class="link-more" @click.prevent="router.push('/resident/my-requests')">查看全部</a>
         </div>
         <div v-if="cases.length === 0" class="empty-state">
-          <p>还没有案例，从描述你遇到的问题开始</p>
+          <div class="empty-icon">🌱</div>
+          <p class="empty-title">第一次使用？</p>
+          <p class="empty-text">从描述你遇到的问题开始，<br />邻光会帮你理清情况，一起想办法怎么开口。</p>
+          <button class="btn-primary empty-btn" @click="router.push('/resident/submit')">开始描述问题</button>
+          <p class="empty-tip">也可以点击上方常见场景快速开始</p>
         </div>
         <div v-else class="case-list">
           <div v-for="c in cases.slice(0, 3)" :key="c.id" class="case-card clickable" :class="'risk-' + c.risk_level" @click="router.push('/resident/case/' + c.id)">
@@ -131,7 +135,12 @@ function selectScenario(s) {
 .link-more { font-size: 13px; color: #E8A33D; cursor: pointer; text-decoration: none; }
 .link-more:hover { text-decoration: underline; }
 .my-cases { margin-bottom: 24px; }
-.empty-state { text-align: center; padding: 32px; color: #9E9893; font-size: 14px; background: #fff; border-radius: 12px; border: 1px solid #E0D8CE; }
+.empty-state { text-align: center; padding: 36px 24px; color: #9E9893; font-size: 14px; background: #fff; border-radius: 16px; border: 1px dashed #E0C9A6; animation: ng-fade-in 0.35s ease; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-title { font-size: 17px; font-weight: 600; color: #2D2A26; margin: 0 0 8px; }
+.empty-text { font-size: 14px; color: #6B6560; line-height: 1.7; margin: 0 0 20px; }
+.empty-btn { max-width: 260px; margin: 0 auto; }
+.empty-tip { font-size: 12px; color: #9E9893; margin: 14px 0 0; }
 .case-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid #34C759; transition: transform 0.15s, box-shadow 0.15s; border: 1px solid #E0D8CE; border-left: 4px solid #34C759; }
 .case-card.clickable { cursor: pointer; }
 .case-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(232,163,61,0.12); }

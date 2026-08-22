@@ -8,6 +8,7 @@ const routes = [
   { path: '/resident/my-requests', name: 'MyRequests', component: () => import('../views/resident/MyRequests.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/case/:id', name: 'CaseDetail', component: () => import('../views/resident/CaseDetail.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/case/:id/diagnosis', name: 'DiagnosisResult', component: () => import('../views/resident/DiagnosisResult.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
+  { path: '/resident/case/:id/safety', name: 'SafetyResponse', component: () => import('../views/resident/SafetyResponse.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/case/:id/plan', name: 'ActionPlan', component: () => import('../views/resident/ActionPlan.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/case/:id/messages', name: 'MessageGeneration', component: () => import('../views/resident/MessageGeneration.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/case/:id/simulation', name: 'SimulationTraining', component: () => import('../views/resident/SimulationTraining.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
