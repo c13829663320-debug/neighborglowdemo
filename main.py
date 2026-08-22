@@ -44,6 +44,9 @@ app.add_middleware(
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    role: Optional[str] = None
+    user_id: Optional[int] = None
+    username: Optional[str] = None
 
 class UserCreate(BaseModel):
     username: str
@@ -317,8 +320,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    token = create_access_token({"sub": str(user.id)})
-    return {"access_token": token, "token_type": "bearer"}
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return {"access_token": token, "token_type": "bearer", "role": user.role, "user_id": user.id, "username": user.username}
 
 
 # ================================================================================
@@ -331,8 +334,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=401, detail="用户名或密码错误")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="账户已禁用")
-    token = create_access_token({"sub": str(user.id)})
-    return {"access_token": token, "token_type": "bearer"}
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return {"access_token": token, "token_type": "bearer", "role": user.role, "user_id": user.id, "username": user.username}
 
 
 # ================================================================================
