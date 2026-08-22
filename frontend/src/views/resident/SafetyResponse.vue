@@ -17,7 +17,7 @@
 
     <template v-else>
       <!-- Risk Alert Hero -->
-      <section class="risk-hero ng-fade-in">
+      <section class="risk-hero ng-safety-banner ng-fade-in">
         <div class="risk-hero-icon">🛡️</div>
         <div class="risk-hero-body">
           <span class="ng-risk-badge ng-risk-red">安全风险</span>
@@ -210,7 +210,7 @@ onMounted(loadCase)
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--ng-dur-fast);
+  transition: background var(--ng-dur-fast) var(--ng-ease);
 }
 .back-btn:active { background: var(--ng-bg-subtle); }
 .header-spacer { width: 40px; }
@@ -226,7 +226,6 @@ onMounted(loadCase)
 
 /* Risk Hero */
 .risk-hero {
-  background: linear-gradient(160deg, #FFF0EE 0%, #FFE0DB 60%, #FFD5CE 100%);
   border-radius: var(--ng-radius-card);
   padding: var(--ng-space-6);
   display: flex;
@@ -240,7 +239,8 @@ onMounted(loadCase)
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(244, 67, 54, 0.12);
+  background: var(--ng-bg-card);
+  box-shadow: var(--ng-shadow-card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,13 +253,13 @@ onMounted(loadCase)
   gap: var(--ng-space-2);
 }
 .risk-hero-body h2 {
-  font-size: 19px;
+  font-size: var(--ng-fs-page);
   font-weight: var(--ng-fw-title);
-  color: #B71C1C;
+  color: var(--ng-risk-red);
 }
 .risk-hero-desc {
   font-size: var(--ng-fs-body);
-  color: #7A4A44;
+  color: var(--ng-text-secondary);
   line-height: var(--ng-lh);
   max-width: 320px;
 }
@@ -275,7 +275,7 @@ onMounted(loadCase)
   align-items: center;
   gap: var(--ng-space-3);
   background: var(--ng-bg-card);
-  border: 1px solid var(--ng-border);
+  border: 1.5px solid var(--ng-risk-red);
   border-radius: var(--ng-radius-card);
   padding: 14px var(--ng-card-padding);
   text-decoration: none;
@@ -301,9 +301,9 @@ onMounted(loadCase)
   flex-direction: column;
   gap: 2px;
 }
-.emergency-text strong { font-size: 15px; color: var(--ng-text-main); }
+.emergency-text strong { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); color: var(--ng-risk-red); }
 .emergency-text span { font-size: var(--ng-fs-aux); color: var(--ng-text-secondary); }
-.emergency-arrow { color: var(--ng-text-hint); font-size: 18px; }
+.emergency-arrow { color: var(--ng-risk-red); font-size: 18px; }
 
 /* Guidance */
 .guidance-list {
@@ -325,7 +325,7 @@ onMounted(loadCase)
   height: 26px;
   border-radius: 50%;
   background: var(--ng-primary);
-  color: #fff;
+  color: var(--ng-text-inverse);
   font-size: var(--ng-fs-aux);
   font-weight: var(--ng-fw-title);
   display: flex;
@@ -370,7 +370,7 @@ onMounted(loadCase)
   font-size: var(--ng-fs-body);
 }
 .paused-list li:nth-child(-n+2) { color: var(--ng-text-hint); }
-.paused-list li:nth-child(n+3) { color: #2E7D32; }
+.paused-list li:nth-child(n+3) { color: var(--ng-risk-green); }
 
 /* Fact card */
 .fact-desc {

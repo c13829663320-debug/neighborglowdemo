@@ -220,7 +220,7 @@ onMounted(() => {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #FFF9F0;
+  background: var(--ng-bg-mobile);
   padding-bottom: 100px;
   position: relative;
 }
@@ -230,24 +230,31 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile);
   position: sticky;
   top: 0;
-  background: #FFF9F0;
+  background: var(--ng-bg-mobile);
   z-index: 10;
 }
 .btn-back {
   background: none;
   border: none;
-  font-size: 14px;
-  color: #E8A33D;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-primary);
   cursor: pointer;
-  padding: 4px 0;
+  padding: var(--ng-space-1) 0;
+  transition: opacity var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-back:hover {
+  color: var(--ng-primary-deep);
+}
+.btn-back:active {
+  transform: scale(0.98);
 }
 .top-bar h1 {
-  font-size: 17px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
   margin: 0;
 }
 .header-spacer {
@@ -256,7 +263,7 @@ onMounted(() => {
 
 /* Tone Selector */
 .tone-scroll {
-  padding: 0 0 12px;
+  padding: 0 0 var(--ng-space-3);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -266,54 +273,58 @@ onMounted(() => {
 .tone-tabs {
   display: flex;
   gap: 10px;
-  padding: 0 20px;
+  padding: 0 var(--ng-page-margin-mobile);
   width: max-content;
 }
 .tone-tab {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 1.5px solid #E0D8CE;
-  background: #fff;
+  gap: var(--ng-space-1);
+  padding: 10px var(--ng-space-4);
+  border-radius: var(--ng-radius-btn);
+  border: 1.5px solid var(--ng-border-strong);
+  background: var(--ng-bg-card);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
   min-width: 76px;
   flex-shrink: 0;
 }
 .tone-tab:hover {
-  border-color: #E8A33D;
+  border-color: var(--ng-primary);
+}
+.tone-tab:active {
+  transform: scale(0.98);
 }
 .tone-tab.active {
-  background: linear-gradient(135deg, #E8A33D, #D4922E);
-  border-color: #E8A33D;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(232, 163, 61, 0.3);
+  background: var(--ng-gradient-btn);
+  border-color: var(--ng-primary);
+  color: var(--ng-text-inverse);
+  box-shadow: var(--ng-shadow-btn);
 }
 .tone-emoji {
   font-size: 22px;
   line-height: 1;
 }
 .tone-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #2D2A26;
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
   white-space: nowrap;
 }
 .tone-tab.active .tone-label {
-  color: #fff;
+  color: var(--ng-text-inverse);
 }
 
 /* Message Card */
 .message-card {
-  margin: 8px 20px 20px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(45, 42, 38, 0.06);
+  margin: var(--ng-space-2) var(--ng-page-margin-mobile) var(--ng-space-5);
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-card);
   overflow: hidden;
-  animation: cardIn 0.3s ease;
+  animation: cardIn var(--ng-dur-base) var(--ng-ease);
 }
 @keyframes cardIn {
   from { opacity: 0; transform: translateY(12px); }
@@ -323,24 +334,24 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px 0;
+  padding: 14px var(--ng-card-padding) 0;
 }
 .card-tone-badge {
-  font-size: 13px;
-  font-weight: 600;
-  color: #E8A33D;
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-primary-deep);
 }
 .card-time {
-  font-size: 11px;
-  color: #6B6560;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
 }
 .card-body {
-  padding: 12px 16px 16px;
+  padding: var(--ng-space-3) var(--ng-card-padding) var(--ng-card-padding);
 }
 .card-content {
-  font-size: 15px;
+  font-size: var(--ng-fs-body);
   line-height: 1.7;
-  color: #2D2A26;
+  color: var(--ng-text-main);
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
@@ -348,58 +359,67 @@ onMounted(() => {
 .card-actions {
   display: flex;
   gap: 10px;
-  padding: 0 16px 16px;
+  padding: 0 var(--ng-card-padding) var(--ng-card-padding);
 }
 .btn-copy {
   flex: 1;
   padding: 10px 0;
-  border-radius: 10px;
+  border-radius: var(--ng-radius-btn);
   border: none;
-  background: linear-gradient(135deg, #E8A33D, #D4922E);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: opacity 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-copy:hover {
+  filter: brightness(1.05);
 }
 .btn-copy:active {
-  opacity: 0.85;
+  transform: scale(0.98);
 }
 .btn-regen {
   flex: 1;
   padding: 10px 0;
-  border-radius: 10px;
-  border: 1.5px solid #E0D8CE;
-  background: #fff;
-  color: #2D2A26;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--ng-radius-btn);
+  border: 1.5px solid var(--ng-border-strong);
+  background: var(--ng-bg-card);
+  color: var(--ng-text-main);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-regen:hover {
-  border-color: #E8A33D;
+  border-color: var(--ng-primary);
+  color: var(--ng-primary-deep);
+}
+.btn-regen:active {
+  transform: scale(0.98);
 }
 
 /* Loading */
 .loading-card {
-  margin: 20px;
-  padding: 32px;
-  background: #fff;
-  border-radius: 16px;
+  margin: var(--ng-space-5) var(--ng-page-margin-mobile);
+  padding: var(--ng-space-8);
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  color: #6B6560;
-  font-size: 14px;
-  box-shadow: 0 2px 12px rgba(45, 42, 38, 0.06);
+  gap: var(--ng-space-3);
+  color: var(--ng-text-secondary);
+  font-size: var(--ng-fs-body);
+  box-shadow: var(--ng-shadow-card);
 }
 .spinner {
   width: 28px;
   height: 28px;
-  border: 3px solid #E0D8CE;
-  border-top-color: #E8A33D;
+  border: 3px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -409,29 +429,30 @@ onMounted(() => {
 
 /* Empty Hint */
 .empty-hint {
-  margin: 20px;
-  padding: 40px 24px;
+  margin: var(--ng-space-5) var(--ng-page-margin-mobile);
+  padding: 40px var(--ng-space-6);
   text-align: center;
-  color: #6B6560;
-  font-size: 14px;
-  line-height: 1.6;
+  color: var(--ng-text-secondary);
+  font-size: var(--ng-fs-body);
+  line-height: var(--ng-lh);
 }
 
 /* History */
 .history-section {
-  padding: 0 20px;
+  padding: 0 var(--ng-page-margin-mobile);
 }
 .section-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 24px 0 12px;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: var(--ng-space-6) 0 var(--ng-space-3);
 }
 .history-card {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-btn);
+  border: 1px solid var(--ng-border);
   margin-bottom: 10px;
-  box-shadow: 0 1px 6px rgba(45, 42, 38, 0.05);
+  box-shadow: var(--ng-shadow-card);
   overflow: hidden;
 }
 .history-header {
@@ -439,21 +460,25 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 12px 14px;
+  padding: var(--ng-space-3) 14px;
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
+  transition: background var(--ng-dur-fast) var(--ng-ease);
+}
+.history-header:hover {
+  background: var(--ng-bg-subtle);
 }
 .history-tone-badge {
-  font-size: 13px;
-  font-weight: 500;
-  color: #2D2A26;
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
 }
 .expand-icon {
-  font-size: 12px;
-  color: #6B6560;
-  transition: transform 0.25s ease;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
+  transition: transform var(--ng-dur-base) var(--ng-ease);
   display: inline-block;
 }
 .expand-icon.expanded {
@@ -463,9 +488,9 @@ onMounted(() => {
   padding: 0 14px 14px;
 }
 .history-body p {
-  font-size: 14px;
+  font-size: var(--ng-fs-body);
   line-height: 1.65;
-  color: #2D2A26;
+  color: var(--ng-text-main);
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0 0 10px;
@@ -476,28 +501,31 @@ onMounted(() => {
   align-items: center;
 }
 .history-time {
-  font-size: 11px;
-  color: #6B6560;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
 }
 .btn-copy-sm {
-  font-size: 12px;
-  color: #E8A33D;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-primary);
   background: none;
-  border: 1px solid #E8A33D;
-  border-radius: 6px;
+  border: 1px solid var(--ng-primary);
+  border-radius: var(--ng-radius-tag);
   padding: 3px 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-copy-sm:hover {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
+}
+.btn-copy-sm:active {
+  transform: scale(0.98);
 }
 
 /* Slide transition */
 .slide-enter-active,
 .slide-leave-active {
-  transition: all 0.25s ease;
+  transition: all var(--ng-dur-base) var(--ng-ease);
   overflow: hidden;
 }
 .slide-enter-from,
@@ -521,25 +549,28 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  padding: 16px 20px;
-  background: linear-gradient(to top, #FFF9F0 80%, transparent);
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile);
+  background: linear-gradient(to top, var(--ng-bg-mobile) 80%, transparent);
   z-index: 10;
 }
 .btn-simulation {
   width: 100%;
   padding: 14px 0;
-  border-radius: 12px;
+  border-radius: var(--ng-radius-btn);
   border: none;
-  background: linear-gradient(135deg, #E8A33D, #D4922E);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(232, 163, 61, 0.3);
-  transition: opacity 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-simulation:hover {
+  filter: brightness(1.05);
 }
 .btn-simulation:active {
-  opacity: 0.88;
+  transform: scale(0.98);
 }
 
 /* Toast */
@@ -548,17 +579,17 @@ onMounted(() => {
   top: 60px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(45, 42, 38, 0.85);
-  color: #fff;
-  font-size: 13px;
-  padding: 8px 20px;
-  border-radius: 20px;
+  background: var(--ng-text-main);
+  color: var(--ng-text-inverse);
+  font-size: var(--ng-fs-aux);
+  padding: var(--ng-space-2) var(--ng-space-5);
+  border-radius: var(--ng-radius-pill);
   z-index: 100;
   pointer-events: none;
 }
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s;
+  transition: opacity var(--ng-dur-base) var(--ng-ease);
 }
 .fade-enter-from,
 .fade-leave-to {

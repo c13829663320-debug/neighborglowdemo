@@ -157,11 +157,12 @@
             <circle
               cx="60" cy="60" r="52"
               class="score-fill"
+              :class="score >= 80 ? 'score-high' : score >= 60 ? 'score-mid' : 'score-low'"
               :stroke-dasharray="circumference"
               :stroke-dashoffset="circumference - (circumference * score) / 100"
             />
           </svg>
-          <div class="score-value">{{ score }}</div>
+          <div class="score-value" :class="score >= 80 ? 'score-high' : score >= 60 ? 'score-mid' : 'score-low'">{{ score }}</div>
         </div>
         <p class="score-label">沟通评分 · 共 {{ rounds }} 轮对话</p>
 
@@ -579,7 +580,7 @@ function parseFeedback(feedback) {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #FFF9F0;
+  background: var(--ng-bg-mobile);
   display: flex;
   flex-direction: column;
 }
@@ -589,23 +590,28 @@ function parseFeedback(feedback) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: #fff;
-  border-bottom: 1px solid #E0D8CE;
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile);
+  background: var(--ng-bg-card);
+  border-bottom: 1px solid var(--ng-border);
   flex-shrink: 0;
 }
 .btn-back {
   background: none;
   border: none;
-  font-size: 14px;
-  color: #E8A33D;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-primary);
   cursor: pointer;
   padding: 0;
+  transition: color var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-back:hover {
+  color: var(--ng-primary-dark);
 }
 .top-bar h1 {
-  font-size: 17px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0;
 }
 .header-spacer {
   width: 40px;
@@ -614,45 +620,47 @@ function parseFeedback(feedback) {
 /* ========== Blocked Phase (red risk) ========== */
 .blocked-phase {
   flex: 1;
-  padding: 24px 20px;
+  padding: var(--ng-space-6) var(--ng-page-margin-mobile);
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
 .blocked-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px 24px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  padding: var(--ng-space-8) var(--ng-space-6);
   width: 100%;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--ng-shadow-card);
   text-align: center;
   border-top: 4px solid var(--ng-risk-red);
-  animation: ng-fade-in 0.3s ease;
+  animation: ng-fade-in var(--ng-dur-slow) var(--ng-ease) both;
 }
 .blocked-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--ng-card-gap);
+  margin-bottom: var(--ng-space-4);
 }
 .blocked-icon {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FDECEA, #FAD4D0);
+  background: var(--ng-risk-red-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
 }
 .blocked-card h2 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
   color: var(--ng-risk-red);
+  margin: 0;
 }
 .blocked-text {
-  font-size: 14px;
+  font-size: var(--ng-fs-body);
   color: var(--ng-text-secondary);
   line-height: 1.7;
   margin-bottom: 28px;
@@ -660,80 +668,90 @@ function parseFeedback(feedback) {
 .blocked-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--ng-card-gap);
 }
 .btn-danger {
   background: var(--ng-risk-red);
-  color: #fff;
+  color: var(--ng-text-inverse);
   border: none;
-  border-radius: 12px;
-  padding: 14px 32px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: var(--ng-radius-btn);
+  padding: var(--ng-space-3) var(--ng-space-8);
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
   width: 100%;
-  transition: background 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-danger:hover {
-  background: #D9362B;
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
+}
+.btn-danger:active {
+  transform: scale(0.98);
 }
 
 /* ========== Setup Phase ========== */
 .setup-phase {
   flex: 1;
-  padding: 24px 20px;
+  padding: var(--ng-space-6) var(--ng-page-margin-mobile);
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
 .setup-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px 24px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  padding: var(--ng-space-8) var(--ng-space-6);
   width: 100%;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--ng-shadow-card);
   text-align: center;
 }
 .setup-icon {
   font-size: 48px;
-  margin-bottom: 16px;
+  margin-bottom: var(--ng-space-4);
 }
 .setup-card h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin-bottom: 8px;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-2) 0;
 }
 .setup-hint {
-  font-size: 14px;
-  color: #6B6560;
-  margin-bottom: 24px;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-secondary);
+  margin-bottom: var(--ng-space-6);
   line-height: 1.5;
 }
 
 .style-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--ng-card-gap);
   margin-bottom: 28px;
 }
 .style-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #FFF9F0;
-  border: 2px solid #E0D8CE;
-  border-radius: 12px;
-  padding: 14px 16px;
+  gap: var(--ng-card-gap);
+  background: var(--ng-bg-mobile);
+  border: 2px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-btn);
+  padding: var(--ng-space-3) var(--ng-space-4);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color var(--ng-dur-fast) var(--ng-ease),
+              background var(--ng-dur-fast) var(--ng-ease);
+}
+.style-option:hover {
+  border-color: var(--ng-primary);
 }
 .style-option input {
   display: none;
 }
 .style-option.active {
-  border-color: #E8A33D;
-  background: #FFF3E0;
+  border-color: var(--ng-primary);
+  background: var(--ng-primary-soft2);
 }
 .style-content {
   flex: 1;
@@ -741,27 +759,27 @@ function parseFeedback(feedback) {
 }
 .style-label {
   display: block;
-  font-size: 15px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
   margin-bottom: 2px;
 }
 .style-desc {
   display: block;
-  font-size: 13px;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
 }
 .radio-dot {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid #E0D8CE;
+  border: 2px solid var(--ng-border-strong);
   flex-shrink: 0;
   position: relative;
-  transition: border-color 0.2s;
+  transition: border-color var(--ng-dur-fast) var(--ng-ease);
 }
 .style-option.active .radio-dot {
-  border-color: #E8A33D;
+  border-color: var(--ng-primary);
 }
 .style-option.active .radio-dot::after {
   content: '';
@@ -771,26 +789,31 @@ function parseFeedback(feedback) {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #E8A33D;
+  background: var(--ng-primary);
 }
 
 .btn-primary {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
   border: none;
-  border-radius: 12px;
-  padding: 14px 32px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: var(--ng-radius-btn);
+  padding: var(--ng-space-3) var(--ng-space-8);
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
   width: 100%;
-  transition: background 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-primary:hover {
-  background: #D4922E;
+.btn-primary:hover:not(:disabled) {
+  background: var(--ng-primary-dark);
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 .btn-primary:disabled {
-  opacity: 0.6;
+  background: var(--ng-border-strong);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -804,15 +827,16 @@ function parseFeedback(feedback) {
 .chat-area {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 16px 8px;
+  padding: var(--ng-space-4) var(--ng-space-4) var(--ng-space-2);
   -webkit-overflow-scrolling: touch;
 }
 
 .msg-row {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: var(--ng-space-2);
+  margin-bottom: var(--ng-space-3);
+  animation: fadeSlideUp var(--ng-dur-base) var(--ng-ease) both;
 }
 .msg-right {
   justify-content: flex-end;
@@ -832,10 +856,10 @@ function parseFeedback(feedback) {
   flex-shrink: 0;
 }
 .neighbor-avatar {
-  background: #F0E6D6;
+  background: var(--ng-bg-subtle);
 }
 .user-avatar {
-  background: #FDE8C8;
+  background: var(--ng-primary-soft);
 }
 
 /* Bubble with timestamp column */
@@ -854,42 +878,43 @@ function parseFeedback(feedback) {
 .bubble {
   max-width: 100%;
   padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 15px;
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-body);
   line-height: 1.5;
   word-break: break-word;
 }
 .bubble-neighbor {
-  background: #fff;
-  color: #2D2A26;
-  border: 1px solid #E0D8CE;
-  border-bottom-left-radius: 4px;
+  background: var(--ng-bg-card);
+  color: var(--ng-text-main);
+  border: 1px solid var(--ng-border);
+  border-bottom-left-radius: var(--ng-space-1);
 }
 .bubble-user {
-  background: #E8A33D;
-  color: #fff;
-  border-bottom-right-radius: 4px;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
+  border-bottom-right-radius: var(--ng-space-1);
 }
 
 .msg-time {
-  font-size: 11px;
-  color: #BFB8AE;
-  margin-top: 4px;
-  padding: 0 4px;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
+  margin-top: var(--ng-space-1);
+  padding: 0 var(--ng-space-1);
 }
 
 /* Typing indicator */
 .typing-indicator {
   display: flex;
-  gap: 4px;
-  padding: 12px 18px;
+  gap: var(--ng-space-1);
+  padding: var(--ng-card-gap) var(--ng-space-4);
   align-items: center;
 }
 .typing-indicator span {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #BFB8AE;
+  background: var(--ng-text-hint);
+  opacity: 0.4;
   animation: typingBounce 1.2s infinite;
 }
 .typing-indicator span:nth-child(2) {
@@ -907,20 +932,20 @@ function parseFeedback(feedback) {
 .coach-tip {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin: 0 16px 8px;
+  gap: var(--ng-space-2);
+  margin: 0 var(--ng-space-4) var(--ng-space-2);
   padding: 10px 14px;
-  background: #FFF3E0;
-  border: 1px solid #F5D9A8;
-  border-radius: 10px;
-  font-size: 13px;
-  color: #8B6914;
+  background: var(--ng-primary-soft2);
+  border: 1px solid var(--ng-primary-soft);
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-primary-deep);
   line-height: 1.5;
-  animation: fadeSlideUp 0.3s ease;
+  animation: fadeSlideUp var(--ng-dur-base) var(--ng-ease) both;
 }
 .coach-tip-icon {
   flex-shrink: 0;
-  font-size: 16px;
+  font-size: var(--ng-fs-card);
 }
 .coach-tip-text {
   flex: 1;
@@ -933,12 +958,12 @@ function parseFeedback(feedback) {
 
 /* 每轮教练反馈卡 */
 .coach-msg {
-  margin: 4px 8px 14px;
-  padding: 12px 14px;
+  margin: var(--ng-space-1) var(--ng-space-2) var(--ng-space-3);
+  padding: var(--ng-card-gap) var(--ng-space-3);
   background: var(--ng-primary-soft2);
-  border: 1px solid #F5D9A8;
+  border: 1px solid var(--ng-primary-soft);
   border-radius: var(--ng-radius-card);
-  animation: fadeSlideUp 0.3s ease;
+  animation: fadeSlideUp var(--ng-dur-base) var(--ng-ease) both;
 }
 .coach-msg-head {
   display: flex;
@@ -947,17 +972,17 @@ function parseFeedback(feedback) {
   margin-bottom: 6px;
 }
 .coach-msg-icon {
-  font-size: 14px;
+  font-size: var(--ng-fs-body);
 }
 .coach-msg-title {
   flex: 1;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-title);
   color: var(--ng-primary-deep);
 }
 .coach-score-chip {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-title);
   color: var(--ng-primary-deep);
   background: var(--ng-primary-soft);
   border-radius: var(--ng-radius-pill);
@@ -966,58 +991,60 @@ function parseFeedback(feedback) {
 .coach-msg-list {
   margin: 0;
   padding-left: 18px;
-  font-size: 13px;
+  font-size: var(--ng-fs-aux);
   color: var(--ng-text-secondary);
-  line-height: 1.6;
+  line-height: var(--ng-lh);
 }
 .coach-improved {
-  margin-top: 8px;
-  padding: 8px 10px;
-  background: #fff;
+  margin-top: var(--ng-space-2);
+  padding: var(--ng-space-2) 10px;
+  background: var(--ng-bg-card);
   border-radius: var(--ng-radius-tag);
   border: 1px dashed var(--ng-primary);
 }
 .coach-improved-label {
   display: block;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-title);
   color: var(--ng-primary-deep);
-  margin-bottom: 4px;
+  margin-bottom: var(--ng-space-1);
 }
 .coach-improved p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ng-fs-aux);
   color: var(--ng-text-main);
-  line-height: 1.6;
+  line-height: var(--ng-lh);
 }
 
 /* Input bar */
 .input-bar {
   display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #fff;
-  border-top: 1px solid #E0D8CE;
+  gap: var(--ng-space-2);
+  padding: var(--ng-card-gap) var(--ng-space-4);
+  background: var(--ng-bg-card);
+  border-top: 1px solid var(--ng-border);
   flex-shrink: 0;
   align-items: center;
 }
 .chat-input {
   flex: 1;
-  border: 1px solid #E0D8CE;
-  border-radius: 20px;
-  padding: 10px 16px;
-  font-size: 15px;
+  border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-pill);
+  padding: 10px var(--ng-space-4);
+  font-size: var(--ng-fs-body);
   outline: none;
-  background: #FFF9F0;
-  color: #2D2A26;
-  transition: border-color 0.2s;
+  background: var(--ng-bg-mobile);
+  color: var(--ng-text-main);
+  transition: border-color var(--ng-dur-fast) var(--ng-ease),
+              box-shadow var(--ng-dur-fast) var(--ng-ease);
   min-width: 0;
 }
 .chat-input:focus {
-  border-color: #E8A33D;
+  border-color: var(--ng-primary);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
 }
 .chat-input::placeholder {
-  color: #BFB8AE;
+  color: var(--ng-text-hint);
 }
 
 /* Voice button */
@@ -1025,108 +1052,118 @@ function parseFeedback(feedback) {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid #E0D8CE;
-  background: #fff;
-  color: #6B6560;
+  border: 1px solid var(--ng-border-strong);
+  background: var(--ng-bg-card);
+  color: var(--ng-text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-mic:hover {
-  border-color: #E8A33D;
-  color: #E8A33D;
+.btn-mic:hover:not(:disabled) {
+  border-color: var(--ng-primary);
+  color: var(--ng-primary);
 }
 .btn-mic:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .btn-mic.recording {
-  border-color: #FF3B30;
-  color: #FF3B30;
+  border-color: var(--ng-risk-red);
+  color: var(--ng-risk-red);
   animation: pulse 1.5s infinite;
 }
 .recording-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #FF3B30;
+  background: var(--ng-risk-red);
   animation: blink 1s infinite;
   display: inline-block;
 }
 @keyframes blink { 50% { opacity: 0.3; } }
-@keyframes pulse { 50% { box-shadow: 0 0 0 4px rgba(255,59,48,0.15); } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px var(--ng-risk-red-soft); } }
 
 .btn-send {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
   border: none;
-  border-radius: 20px;
-  padding: 10px 20px;
-  font-size: 15px;
-  font-weight: 600;
+  border-radius: var(--ng-radius-pill);
+  padding: 10px var(--ng-space-5);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-send:hover {
-  background: #D4922E;
+.btn-send:hover:not(:disabled) {
+  background: var(--ng-primary-dark);
+}
+.btn-send:active:not(:disabled) {
+  transform: scale(0.98);
 }
 .btn-send:disabled {
-  opacity: 0.5;
+  background: var(--ng-border-strong);
+  box-shadow: none;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 /* End bar */
 .end-bar {
-  padding: 8px 16px 12px;
-  background: #fff;
+  padding: var(--ng-space-2) var(--ng-space-4) var(--ng-card-gap);
+  background: var(--ng-bg-card);
   flex-shrink: 0;
 }
 .btn-end {
   width: 100%;
-  background: #fff;
-  color: #E8A33D;
-  border: 2px solid #E8A33D;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 15px;
-  font-weight: 600;
+  background: var(--ng-bg-card);
+  color: var(--ng-primary);
+  border: 2px solid var(--ng-primary);
+  border-radius: var(--ng-radius-btn);
+  padding: var(--ng-card-gap);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-end:hover {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
+}
+.btn-end:active {
+  transform: scale(0.98);
 }
 
 /* ========== Result Phase ========== */
 .result-phase {
   flex: 1;
-  padding: 24px 20px;
+  padding: var(--ng-space-6) var(--ng-page-margin-mobile);
   overflow-y: auto;
 }
 .result-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 32px 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  padding: var(--ng-space-8) var(--ng-space-6);
+  box-shadow: var(--ng-shadow-card);
   text-align: center;
 }
 .result-card h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin-bottom: 24px;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-6) 0;
 }
 
 .score-ring-wrap {
   position: relative;
   width: 120px;
   height: 120px;
-  margin: 0 auto 8px;
+  margin: 0 auto var(--ng-space-2);
 }
 .score-ring {
   width: 100%;
@@ -1135,28 +1172,35 @@ function parseFeedback(feedback) {
 }
 .score-track {
   fill: none;
-  stroke: #E0D8CE;
+  stroke: var(--ng-bg-subtle);
   stroke-width: 8;
 }
 .score-fill {
   fill: none;
-  stroke: #E8A33D;
+  stroke: var(--ng-primary);
   stroke-width: 8;
   stroke-linecap: round;
-  transition: stroke-dashoffset 1s ease;
+  transition: stroke-dashoffset var(--ng-dur-slow) var(--ng-ease);
 }
+/* 评分分级色：高分绿 / 中黄 / 低橙 */
+.score-fill.score-high { stroke: var(--ng-risk-green); }
+.score-fill.score-mid { stroke: var(--ng-risk-yellow); }
+.score-fill.score-low { stroke: var(--ng-risk-orange); }
 .score-value {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 32px;
-  font-weight: 700;
-  color: #E8A33D;
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-primary-deep);
 }
+.score-value.score-high { color: var(--ng-risk-green); }
+.score-value.score-mid { color: var(--ng-risk-yellow); }
+.score-value.score-low { color: var(--ng-risk-orange); }
 .score-label {
-  font-size: 14px;
-  color: #6B6560;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-secondary);
   margin-bottom: 28px;
 }
 
@@ -1165,10 +1209,10 @@ function parseFeedback(feedback) {
   margin-bottom: 28px;
 }
 .feedback-section h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin-bottom: 12px;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-card-gap) 0;
 }
 .feedback-list {
   list-style: none;
@@ -1180,9 +1224,9 @@ function parseFeedback(feedback) {
   align-items: flex-start;
   gap: 10px;
   padding: 10px 0;
-  border-bottom: 1px solid #F0EBE4;
-  font-size: 14px;
-  color: #2D2A26;
+  border-bottom: 1px solid var(--ng-border);
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
   line-height: 1.5;
 }
 .feedback-item:last-child {
@@ -1190,17 +1234,17 @@ function parseFeedback(feedback) {
 }
 .fb-icon {
   flex-shrink: 0;
-  font-size: 16px;
+  font-size: var(--ng-fs-card);
 }
 
 /* 最终沟通版本 */
 .final-section {
   text-align: left;
-  margin-bottom: 24px;
+  margin-bottom: var(--ng-space-6);
   background: var(--ng-primary-soft2);
-  border: 1px solid #F5D9A8;
+  border: 1px solid var(--ng-primary-soft);
   border-radius: var(--ng-radius-card);
-  padding: 16px;
+  padding: var(--ng-card-padding);
 }
 .final-head {
   display: flex;
@@ -1209,32 +1253,36 @@ function parseFeedback(feedback) {
   margin-bottom: 10px;
 }
 .final-head h3 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   color: var(--ng-text-main);
+  margin: 0;
 }
 .btn-copy {
   border: 1px solid var(--ng-primary);
-  background: #fff;
+  background: var(--ng-bg-card);
   color: var(--ng-primary-deep);
   border-radius: var(--ng-radius-tag);
-  font-size: 12px;
-  padding: 4px 12px;
+  font-size: var(--ng-fs-small);
+  padding: var(--ng-space-1) var(--ng-card-gap);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-copy:hover {
   background: var(--ng-primary-soft);
 }
+.btn-copy:active {
+  transform: scale(0.98);
+}
 .final-text {
   white-space: pre-line;
-  font-size: 14px;
+  font-size: var(--ng-fs-body);
   line-height: 1.8;
   color: var(--ng-text-main);
 }
 .final-hint {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--ng-fs-small);
   color: var(--ng-text-hint);
   line-height: 1.5;
 }
@@ -1242,31 +1290,33 @@ function parseFeedback(feedback) {
 .result-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--ng-card-gap);
 }
 .btn-secondary {
-  background: none;
-  color: #E8A33D;
-  border: 2px solid #E8A33D;
-  border-radius: 12px;
-  padding: 14px 32px;
-  font-size: 16px;
-  font-weight: 600;
+  background: var(--ng-bg-card);
+  color: var(--ng-primary);
+  border: 1.5px solid var(--ng-primary);
+  border-radius: var(--ng-radius-btn);
+  padding: var(--ng-space-3) var(--ng-space-8);
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-secondary:hover {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary-soft2);
+}
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 .btn-text {
   background: none;
   border: none;
-  color: var(--ng-text-secondary);
-  font-size: 14px;
+  color: var(--ng-primary-deep);
+  font-size: var(--ng-fs-body);
   cursor: pointer;
-  padding: 8px;
-  transition: color 0.2s;
+  padding: var(--ng-space-2);
+  transition: color var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-text:hover {
   color: var(--ng-primary);

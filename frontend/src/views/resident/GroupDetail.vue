@@ -1,5 +1,5 @@
 <template>
-  <div class="page">
+  <div class="page ng-fade-in">
     <header class="top-bar">
       <button @click="$router.back()" class="btn-back">&larr; 返回</button>
       <h1>{{ group.name || '群组详情' }}</h1>
@@ -109,41 +109,189 @@ async function handleLeave() {
 </script>
 
 <style scoped>
-.page { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #FFF9F0; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; position: sticky; top: 0; background: #FFF9F0; z-index: 10; }
-.btn-back { background: none; border: none; font-size: 14px; color: #E8A33D; cursor: pointer; }
-.top-bar h1 { font-size: 17px; font-weight: 600; color: #2D2A26; }
-.main-content { padding: 0 20px 32px; }
-.loading { text-align: center; padding: 60px 0; color: #6B6560; }
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--ng-bg-mobile);
+}
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile);
+  position: sticky;
+  top: 0;
+  background: var(--ng-bg-mobile);
+  z-index: 10;
+}
+.btn-back {
+  background: none;
+  border: none;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-primary-deep);
+  cursor: pointer;
+  transition: opacity var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-back:hover { opacity: 0.75; }
+.top-bar h1 {
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0;
+}
+.main-content { padding: 0 var(--ng-page-margin-mobile) var(--ng-space-8); }
+.loading {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--ng-text-secondary);
+}
 
-.info-card { background: #fff; border-radius: 14px; padding: 20px; border: 1px solid #E0D8CE; margin-bottom: 20px; }
-.group-name { font-size: 20px; font-weight: 700; color: #2D2A26; margin-bottom: 8px; }
-.group-desc { font-size: 14px; color: #6B6560; line-height: 1.6; margin-bottom: 12px; }
-.meta-row { font-size: 13px; color: #6B6560; margin-bottom: 10px; }
-.meta-item { margin-right: 16px; }
-.tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.tag { background: #FFF3E0; color: #E8A33D; font-size: 12px; padding: 3px 10px; border-radius: 20px; }
+.info-card {
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-space-5);
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-card);
+  margin-bottom: var(--ng-space-5);
+}
+.group-name {
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-2);
+}
+.group-desc {
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-secondary);
+  line-height: var(--ng-lh);
+  margin: 0 0 var(--ng-space-3);
+}
+.meta-row {
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
+  margin-bottom: 10px;
+}
+.meta-item { margin-right: var(--ng-space-4); }
+.tags { display: flex; flex-wrap: wrap; gap: var(--ng-space-2); }
+.tag {
+  background: var(--ng-primary-soft);
+  color: var(--ng-primary-deep);
+  font-size: var(--ng-fs-small);
+  padding: 3px 10px;
+  border-radius: var(--ng-radius-tag);
+}
 
-.section { margin-bottom: 20px; }
-.section-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.section-title { font-size: 16px; font-weight: 600; color: #2D2A26; margin-bottom: 12px; }
-.toggle { font-size: 13px; color: #E8A33D; }
-.empty-hint { font-size: 14px; color: #6B6560; padding: 16px 0; }
+.section { margin-bottom: var(--ng-space-5); }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.section-title {
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-3);
+}
+.toggle {
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-primary-deep);
+}
+.empty-hint {
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-hint);
+  padding: var(--ng-space-4) 0;
+}
 
-.topic-card { background: #fff; border: 1px solid #E0D8CE; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; cursor: pointer; position: relative; }
-.topic-card:active { background: #FFF3E0; }
-.topic-name { font-size: 15px; font-weight: 500; color: #2D2A26; flex: 1; }
-.topic-meta { font-size: 12px; color: #6B6560; margin-right: 12px; }
-.arrow { color: #E8A33D; font-size: 16px; }
+.topic-card {
+  background: var(--ng-bg-card);
+  border: 1px solid var(--ng-border);
+  border-radius: var(--ng-radius-btn);
+  padding: 14px var(--ng-space-4);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+}
+.topic-card:hover { box-shadow: var(--ng-shadow-card); }
+.topic-card:active { background: var(--ng-primary-soft2); }
+.topic-name {
+  font-size: 15px;
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
+  flex: 1;
+}
+.topic-meta {
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
+  margin-right: var(--ng-space-3);
+}
+.arrow { color: var(--ng-primary-deep); font-size: var(--ng-fs-card); }
 
-.members-grid { display: flex; flex-wrap: wrap; gap: 16px; }
-.member-item { display: flex; flex-direction: column; align-items: center; width: 56px; }
-.avatar { width: 44px; height: 44px; border-radius: 50%; background: #E8A33D; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.member-name { font-size: 11px; color: #6B6560; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 56px; }
+.members-grid { display: flex; flex-wrap: wrap; gap: var(--ng-space-4); }
+.member-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 56px;
+}
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  margin-bottom: var(--ng-space-1);
+}
+.member-name {
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 56px;
+}
 
-.actions { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
-.btn-primary { background: #E8A33D; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
-.btn-primary:active { opacity: 0.85; }
-.btn-danger { background: #fff; color: #D9534F; border: 1px solid #D9534F; border-radius: 12px; padding: 14px; font-size: 15px; cursor: pointer; }
-.btn-danger:active { background: #FFF0F0; }
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ng-space-3);
+  margin-top: var(--ng-space-6);
+}
+.btn-primary {
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
+  border: none;
+  border-radius: var(--ng-radius-btn);
+  padding: 14px;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  cursor: pointer;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-primary:hover { filter: brightness(0.96); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-danger {
+  background: var(--ng-bg-card);
+  color: var(--ng-risk-red);
+  border: 1px solid var(--ng-risk-red);
+  border-radius: var(--ng-radius-btn);
+  padding: 14px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-danger:hover { background: var(--ng-risk-red-soft); }
+.btn-danger:active { background: var(--ng-risk-red-soft); }
 </style>

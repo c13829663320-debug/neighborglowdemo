@@ -338,7 +338,7 @@ onMounted(fetchData)
 <style scoped>
 .followup-page {
   min-height: 100vh;
-  background-color: #FFF9F0;
+  background-color: var(--ng-bg-mobile);
   max-width: 480px;
   margin: 0 auto;
   padding-bottom: 40px;
@@ -349,34 +349,38 @@ onMounted(fetchData)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  background: #fff;
-  border-bottom: 1px solid #E0D8CE;
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile);
+  background: var(--ng-bg-card);
+  border-bottom: 1px solid var(--ng-border-strong);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .top-bar h1 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
   margin: 0;
 }
 
 .btn-back {
   background: none;
   border: none;
-  font-size: 15px;
-  color: #E8A33D;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-primary);
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: background 0.2s;
+  padding: var(--ng-space-1) var(--ng-space-2);
+  border-radius: var(--ng-radius-tag);
+  transition: background var(--ng-dur-fast) var(--ng-ease);
 }
 
 .btn-back:hover {
-  background: rgba(232, 163, 61, 0.1);
+  background: var(--ng-primary-tint);
+}
+
+.btn-back:active {
+  transform: scale(0.98);
 }
 
 .top-bar-spacer {
@@ -390,16 +394,16 @@ onMounted(fetchData)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
-  gap: 12px;
-  color: #6B6560;
+  padding: 60px var(--ng-page-margin-mobile);
+  gap: var(--ng-space-3);
+  color: var(--ng-text-secondary);
 }
 
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #E0D8CE;
-  border-top-color: #E8A33D;
+  border: 3px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -409,42 +413,53 @@ onMounted(fetchData)
 }
 
 .btn-retry {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
   border: none;
-  padding: 8px 20px;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: var(--ng-space-2) var(--ng-space-5);
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-body);
   cursor: pointer;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+}
+
+.btn-retry:hover {
+  background: var(--ng-primary-dark);
+}
+
+.btn-retry:active {
+  transform: scale(0.98);
 }
 
 /* Content */
 .content {
-  padding: 16px;
+  padding: var(--ng-card-padding);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--ng-card-gap);
 }
 
 /* Case Summary Card */
 .case-summary-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #E0D8CE;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding);
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-card);
 }
 
 .case-summary-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--ng-space-3);
 }
 
 .case-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
   margin: 0;
   flex: 1;
   overflow: hidden;
@@ -453,111 +468,113 @@ onMounted(fetchData)
 }
 
 .risk-badge {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-weight: 500;
+  font-size: var(--ng-fs-small);
+  padding: var(--ng-space-1) 10px;
+  border-radius: var(--ng-radius-pill);
+  font-weight: var(--ng-fw-strong);
   white-space: nowrap;
 }
 
 .risk-green {
-  background: rgba(76, 175, 80, 0.12);
-  color: #2E7D32;
+  background: var(--ng-risk-green);
+  color: var(--ng-text-inverse);
 }
 
 .risk-yellow {
-  background: rgba(255, 193, 7, 0.18);
-  color: #A66A00;
+  background: var(--ng-risk-yellow);
+  color: var(--ng-text-main);
 }
 
 .risk-orange {
-  background: rgba(255, 152, 0, 0.15);
-  color: #C75B00;
+  background: var(--ng-risk-orange);
+  color: var(--ng-text-inverse);
 }
 
 .risk-red {
-  background: rgba(244, 67, 54, 0.12);
-  color: #C62828;
+  background: var(--ng-risk-red);
+  color: var(--ng-text-inverse);
 }
 
 /* Escalation Confirmation */
 .escalation-confirmation {
-  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
-  border-radius: 12px;
-  padding: 24px;
+  background: var(--ng-risk-green-soft);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-space-6);
   text-align: center;
-  border: 1px solid #A5D6A7;
+  border: 1px solid var(--ng-risk-green);
 }
 
 .confirmation-icon {
   width: 48px;
   height: 48px;
-  background: #4CAF50;
-  color: #fff;
+  background: var(--ng-risk-green);
+  color: var(--ng-text-inverse);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  margin: 0 auto 12px;
+  margin: 0 auto var(--ng-space-3);
 }
 
 .confirmation-text {
-  font-size: 15px;
-  color: #2D2A26;
-  font-weight: 500;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
+  font-weight: var(--ng-fw-strong);
   margin: 0;
 }
 
 /* Form Card */
 .form-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #E0D8CE;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding);
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-card);
 }
 
 .form-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0 0 20px 0;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-5) 0;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--ng-space-5);
 }
 
 .form-label {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #2D2A26;
-  margin-bottom: 8px;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
+  margin-bottom: var(--ng-space-2);
 }
 
 .form-textarea {
   width: 100%;
-  border: 1px solid #E0D8CE;
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 14px;
-  color: #2D2A26;
-  background: #FFF9F0;
+  border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-input);
+  padding: var(--ng-space-3);
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
+  background: var(--ng-bg-mobile);
   resize: vertical;
   font-family: inherit;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color var(--ng-dur-fast) var(--ng-ease),
+              box-shadow var(--ng-dur-fast) var(--ng-ease);
 }
 
 .form-textarea:focus {
   outline: none;
-  border-color: #E8A33D;
-  box-shadow: 0 0 0 3px rgba(232, 163, 61, 0.15);
+  border-color: var(--ng-primary);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
 }
 
 .form-textarea::placeholder {
-  color: #A09A94;
+  color: var(--ng-text-hint);
 }
 
 /* Improvement Cards */
@@ -571,23 +588,27 @@ onMounted(fetchData)
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  border: 2px solid #E0D8CE;
-  border-radius: 12px;
+  padding: 14px var(--ng-space-4);
+  border: 2px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-btn);
   cursor: pointer;
-  transition: all 0.2s;
-  background: #fff;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+  background: var(--ng-bg-card);
 }
 
 .improvement-card:hover {
-  border-color: #E8A33D;
-  background: rgba(232, 163, 61, 0.03);
+  border-color: var(--ng-primary);
+  background: var(--ng-primary-soft2);
+}
+
+.improvement-card:active {
+  transform: scale(0.98);
 }
 
 .improvement-card.selected {
-  border-color: #E8A33D;
-  background: rgba(232, 163, 61, 0.06);
-  box-shadow: 0 0 0 3px rgba(232, 163, 61, 0.12);
+  border-color: var(--ng-primary);
+  background: var(--ng-primary-soft2);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
 }
 
 .improvement-icon {
@@ -602,18 +623,18 @@ onMounted(fetchData)
 }
 
 .improvement-icon.improved {
-  background: #E8F5E9;
-  color: #4CAF50;
+  background: var(--ng-risk-green-soft);
+  color: var(--ng-risk-green);
 }
 
 .improvement-icon.partial {
-  background: #FFF8E1;
-  color: #F9A825;
+  background: var(--ng-risk-yellow-soft);
+  color: var(--ng-risk-yellow);
 }
 
 .improvement-icon.none {
-  background: #FFEBEE;
-  color: #E53935;
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
 }
 
 .improvement-info {
@@ -623,66 +644,71 @@ onMounted(fetchData)
 }
 
 .improvement-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: #2D2A26;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
 }
 
 .improvement-desc {
-  font-size: 12px;
-  color: #6B6560;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
 }
 
 /* Submit Button */
 .btn-submit {
   width: 100%;
   padding: 14px;
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
   border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--ng-space-2);
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #D4922F;
+  filter: brightness(1.05);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(232, 163, 61, 0.3);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-submit:disabled {
-  background: #E0D8CE;
-  color: #A09A94;
+  background: var(--ng-border-strong);
+  color: var(--ng-text-hint);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-loading {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border: 2px solid var(--ng-primary-soft);
+  border-top-color: var(--ng-text-inverse);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 /* Escalation Card */
 .escalation-card {
-  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
-  border-radius: 12px;
-  padding: 24px;
+  background: linear-gradient(135deg, var(--ng-risk-orange-soft), var(--ng-primary-soft));
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-space-6);
   text-align: center;
-  border: 1px solid #FFCC80;
+  border: 1px solid var(--ng-risk-orange);
 }
 
 .escalation-icon-wrapper {
-  margin-bottom: 12px;
+  margin-bottom: var(--ng-space-3);
 }
 
 .escalation-warning-icon {
@@ -691,59 +717,63 @@ onMounted(fetchData)
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: #FF9800;
-  color: #fff;
+  background: var(--ng-risk-orange);
+  color: var(--ng-text-inverse);
   border-radius: 50%;
   font-size: 22px;
   font-weight: 700;
 }
 
 .escalation-text {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0 0 8px 0;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-2) 0;
 }
 
 .escalation-subtext {
-  font-size: 13px;
-  color: #6B6560;
-  margin: 0 0 16px 0;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
+  margin: 0 0 var(--ng-space-4) 0;
 }
 
 .btn-escalate {
-  background: #E65100;
-  color: #fff;
+  background: var(--ng-risk-orange);
+  color: var(--ng-text-inverse);
   border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
+  padding: var(--ng-space-3) var(--ng-space-6);
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 
 .btn-escalate:hover {
-  background: #BF360C;
+  filter: brightness(0.92);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3);
+}
+
+.btn-escalate:active {
+  transform: scale(0.98);
 }
 
 /* History Section */
 .history-section {
-  margin-top: 8px;
+  margin-top: var(--ng-space-2);
 }
 
 .section-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0 0 16px 0;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-4) 0;
 }
 
 .timeline {
   position: relative;
-  padding-left: 24px;
+  padding-left: var(--ng-space-6);
 }
 
 .timeline::before {
@@ -753,12 +783,12 @@ onMounted(fetchData)
   top: 8px;
   bottom: 8px;
   width: 2px;
-  background: #E0D8CE;
+  background: var(--ng-border-strong);
 }
 
 .timeline-item {
   position: relative;
-  padding-bottom: 20px;
+  padding-bottom: var(--ng-space-5);
 }
 
 .timeline-item:last-child {
@@ -772,98 +802,99 @@ onMounted(fetchData)
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid #E0D8CE;
-  background: #fff;
+  border: 2px solid var(--ng-border-strong);
+  background: var(--ng-bg-card);
 }
 
 .dot-improved {
-  background: #4CAF50;
-  border-color: #4CAF50;
+  background: var(--ng-risk-green);
+  border-color: var(--ng-risk-green);
 }
 
 .dot-partial {
-  background: #F9A825;
-  border-color: #F9A825;
+  background: var(--ng-risk-yellow);
+  border-color: var(--ng-risk-yellow);
 }
 
 .dot-none {
-  background: #E53935;
-  border-color: #E53935;
+  background: var(--ng-risk-red);
+  border-color: var(--ng-risk-red);
 }
 
 .timeline-content {
-  background: #fff;
-  border-radius: 10px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-btn);
   padding: 14px;
-  border: 1px solid #E0D8CE;
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-card);
 }
 
 .timeline-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--ng-space-2);
 }
 
 .timeline-date {
-  font-size: 12px;
-  color: #6B6560;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
 }
 
 .improvement-tag {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-weight: 500;
+  font-size: var(--ng-fs-small);
+  padding: 2px var(--ng-space-2);
+  border-radius: var(--ng-radius-tag);
+  font-weight: var(--ng-fw-strong);
 }
 
 .tag-improved {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: var(--ng-risk-green-soft);
+  color: var(--ng-risk-green);
 }
 
 .tag-partial {
-  background: #FFF8E1;
-  color: #F57F17;
+  background: var(--ng-risk-yellow-soft);
+  color: var(--ng-risk-orange);
 }
 
 .tag-none {
-  background: #FFEBEE;
-  color: #C62828;
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
 }
 
 .timeline-body {
-  font-size: 13px;
-  color: #2D2A26;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-main);
   line-height: 1.5;
-  margin-bottom: 4px;
+  margin-bottom: var(--ng-space-1);
 }
 
 .timeline-label {
-  font-weight: 600;
-  color: #6B6560;
-  margin-right: 4px;
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-secondary);
+  margin-right: var(--ng-space-1);
 }
 
 .timeline-escalated {
-  margin-top: 8px;
+  margin-top: var(--ng-space-2);
 }
 
 .escalated-badge {
-  font-size: 11px;
-  background: #FFEBEE;
-  color: #C62828;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-weight: 500;
+  font-size: var(--ng-fs-small);
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
+  padding: 3px var(--ng-space-2);
+  border-radius: var(--ng-radius-tag);
+  font-weight: var(--ng-fw-strong);
 }
 
 /* Empty History */
 .empty-history {
   text-align: center;
-  padding: 24px;
-  color: #A09A94;
-  font-size: 14px;
+  padding: var(--ng-space-6);
+  color: var(--ng-text-hint);
+  font-size: var(--ng-fs-body);
 }
 
 /* Toast */
@@ -872,27 +903,27 @@ onMounted(fetchData)
   bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: var(--ng-space-3) var(--ng-space-6);
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
   z-index: 100;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ng-shadow-float);
 }
 
 .toast-success {
-  background: #2D2A26;
-  color: #fff;
+  background: var(--ng-text-main);
+  color: var(--ng-text-inverse);
 }
 
 .toast-error {
-  background: #C62828;
-  color: #fff;
+  background: var(--ng-risk-red);
+  color: var(--ng-text-inverse);
 }
 
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transition: all var(--ng-dur-base) var(--ng-ease);
 }
 
 .toast-enter-from,
@@ -905,83 +936,94 @@ onMounted(fetchData)
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: color-mix(in srgb, var(--ng-text-main) 45%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
-  padding: 20px;
+  padding: var(--ng-page-margin-mobile);
 }
 
 .modal-content {
-  background: #fff;
-  border-radius: 16px;
-  padding: 28px 24px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: 28px var(--ng-space-6);
   max-width: 360px;
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-float);
 }
 
 .modal-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0 0 12px 0;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-3) 0;
 }
 
 .modal-text {
-  font-size: 14px;
-  color: #6B6560;
-  line-height: 1.6;
-  margin: 0 0 24px 0;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-secondary);
+  line-height: var(--ng-lh);
+  margin: 0 0 var(--ng-space-6) 0;
 }
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--ng-space-3);
   justify-content: flex-end;
 }
 
 .btn-modal-cancel {
-  background: #fff;
-  color: #6B6560;
-  border: 1px solid #E0D8CE;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
+  background: var(--ng-bg-card);
+  color: var(--ng-text-secondary);
+  border: 1px solid var(--ng-border-strong);
+  padding: 10px var(--ng-space-5);
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-body);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--ng-dur-fast) var(--ng-ease);
 }
 
 .btn-modal-cancel:hover {
-  background: #F5F0EA;
+  background: var(--ng-bg-subtle);
+}
+
+.btn-modal-cancel:active {
+  transform: scale(0.98);
 }
 
 .btn-modal-confirm {
-  background: #E65100;
-  color: #fff;
+  background: var(--ng-risk-orange);
+  color: var(--ng-text-inverse);
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 10px var(--ng-space-5);
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 
 .btn-modal-confirm:hover:not(:disabled) {
-  background: #BF360C;
+  filter: brightness(0.92);
+}
+
+.btn-modal-confirm:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-modal-confirm:disabled {
-  background: #E0D8CE;
-  color: #A09A94;
+  background: var(--ng-border-strong);
+  color: var(--ng-text-hint);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity var(--ng-dur-base) var(--ng-ease);
 }
 
 .modal-enter-from,

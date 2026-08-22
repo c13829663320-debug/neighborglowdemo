@@ -1,5 +1,5 @@
 <template>
-  <div class="page">
+  <div class="page ng-fade-in">
     <header class="top-bar">
       <button @click="$router.back()" class="btn-back">&larr; 返回</button>
       <div class="header-info">
@@ -146,41 +146,43 @@ watch(topicId, () => {
 </script>
 
 <style scoped>
-.page { max-width: 480px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; background: #FFF9F0; }
+.page { max-width: 480px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; background: var(--ng-bg-mobile); }
 
-.top-bar { display: flex; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 1px solid #E0D8CE; flex-shrink: 0; }
-.btn-back { background: none; border: none; font-size: 14px; color: #E8A33D; cursor: pointer; margin-right: 12px; }
+.top-bar { display: flex; align-items: center; padding: var(--ng-space-3) var(--ng-space-4); background: var(--ng-bg-card); border-bottom: 1px solid var(--ng-border); flex-shrink: 0; }
+.btn-back { background: none; border: none; font-size: var(--ng-fs-body); color: var(--ng-primary-deep); cursor: pointer; margin-right: var(--ng-space-3); transition: opacity var(--ng-dur-fast) var(--ng-ease); }
+.btn-back:hover { opacity: 0.75; }
 .header-info { flex: 1; }
-.header-info h1 { font-size: 16px; font-weight: 600; color: #2D2A26; margin: 0; }
-.member-count { font-size: 12px; color: #6B6560; }
+.header-info h1 { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); color: var(--ng-text-main); margin: 0; }
+.member-count { font-size: var(--ng-fs-small); color: var(--ng-text-secondary); }
 
-.chat-area { flex: 1; overflow-y: auto; padding: 12px 16px; }
-.date-divider { text-align: center; font-size: 12px; color: #6B6560; margin: 16px 0 10px; }
-.empty-chat { text-align: center; color: #6B6560; padding: 60px 0; font-size: 14px; }
+.chat-area { flex: 1; overflow-y: auto; padding: var(--ng-space-3) var(--ng-space-4); }
+.date-divider { text-align: center; font-size: var(--ng-fs-small); color: var(--ng-text-hint); margin: var(--ng-space-4) 0 10px; }
+.empty-chat { text-align: center; color: var(--ng-text-hint); padding: 60px 0; font-size: var(--ng-fs-body); }
 
-.msg-row { display: flex; align-items: flex-start; margin-bottom: 14px; gap: 8px; }
+.msg-row { display: flex; align-items: flex-start; margin-bottom: 14px; gap: var(--ng-space-2); }
 .msg-row.mine { flex-direction: row-reverse; }
 
-.avatar { width: 36px; height: 36px; border-radius: 50%; background: #E0D8CE; color: #2D2A26; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
-.self-avatar { background: #E8A33D; color: #fff; }
-.ai-avatar { background: #5B8DEF; color: #fff; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--ng-border-strong); color: var(--ng-text-main); display: flex; align-items: center; justify-content: center; font-size: var(--ng-fs-body); font-weight: var(--ng-fw-title); flex-shrink: 0; }
+.self-avatar { background: var(--ng-primary); color: var(--ng-text-inverse); }
+.ai-avatar { background: var(--ng-primary-deep); color: var(--ng-text-inverse); }
 
 .msg-body { max-width: 72%; }
-.msg-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 12px; }
+.msg-meta { display: flex; align-items: center; gap: 6px; margin-bottom: var(--ng-space-1); font-size: var(--ng-fs-small); }
 .mine .msg-meta { flex-direction: row-reverse; }
-.sender-name { color: #6B6560; }
-.msg-time { color: #6B6560; }
-.ai-badge { background: #5B8DEF; color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
+.sender-name { color: var(--ng-text-secondary); }
+.msg-time { color: var(--ng-text-hint); }
+.ai-badge { background: var(--ng-primary-deep); color: var(--ng-text-inverse); font-size: 10px; padding: 1px 5px; border-radius: var(--ng-radius-tag); font-weight: var(--ng-fw-title); }
 
-.bubble { padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.6; word-break: break-word; }
-.msg-row:not(.mine) .bubble { background: #fff; color: #2D2A26; border: 1px solid #E0D8CE; border-top-left-radius: 4px; }
-.msg-row.mine .bubble { background: #E8A33D; color: #fff; border-top-right-radius: 4px; }
-.msg-row.agent .bubble { background: #F0F4FF; border-color: #C8D6F0; }
+.bubble { padding: 10px 14px; border-radius: var(--ng-radius-btn); font-size: var(--ng-fs-body); line-height: var(--ng-lh); word-break: break-word; }
+.msg-row:not(.mine) .bubble { background: var(--ng-bg-card); color: var(--ng-text-main); border: 1px solid var(--ng-border); }
+.msg-row.mine .bubble { background: var(--ng-primary); color: var(--ng-text-inverse); }
+.msg-row.agent .bubble { background: var(--ng-primary-soft2); border-color: var(--ng-primary-soft); }
 
-.input-bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #fff; border-top: 1px solid #E0D8CE; flex-shrink: 0; }
-.msg-input { flex: 1; border: 1px solid #E0D8CE; border-radius: 22px; padding: 10px 16px; font-size: 15px; outline: none; background: #FFF9F0; color: #2D2A26; }
-.msg-input:focus { border-color: #E8A33D; }
-.send-btn { background: #E8A33D; color: #fff; border: none; border-radius: 22px; padding: 10px 20px; font-size: 15px; font-weight: 600; cursor: pointer; }
-.send-btn:disabled { opacity: 0.5; cursor: default; }
-.send-btn:not(:disabled):active { opacity: 0.85; }
+.input-bar { display: flex; align-items: center; gap: 10px; padding: var(--ng-space-3) var(--ng-space-4); padding-bottom: calc(var(--ng-space-3) + env(safe-area-inset-bottom, 0px)); background: var(--ng-bg-card); border-top: 1px solid var(--ng-border); flex-shrink: 0; }
+.msg-input { flex: 1; border: 1px solid var(--ng-border-strong); border-radius: var(--ng-radius-input); padding: 10px var(--ng-space-4); font-size: var(--ng-fs-body); outline: none; background: var(--ng-bg-mobile); color: var(--ng-text-main); font-family: inherit; box-sizing: border-box; transition: border-color var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease); }
+.msg-input:focus { border-color: var(--ng-primary); box-shadow: 0 0 0 3px var(--ng-primary-tint); }
+.send-btn { background: var(--ng-gradient-btn); color: var(--ng-text-inverse); border: none; border-radius: var(--ng-radius-btn); padding: 10px var(--ng-space-5); font-size: var(--ng-fs-body); font-weight: var(--ng-fw-title); cursor: pointer; box-shadow: var(--ng-shadow-btn); transition: all var(--ng-dur-fast) var(--ng-ease); }
+.send-btn:disabled { background: var(--ng-border-strong); box-shadow: none; cursor: not-allowed; }
+.send-btn:not(:disabled):hover { background: var(--ng-primary-dark); }
+.send-btn:not(:disabled):active { transform: scale(0.98); }
 </style>

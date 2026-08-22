@@ -1,6 +1,6 @@
 <template>
   <div class="login-page">
-    <div class="login-card">
+    <div class="login-card ng-fade-in">
       <h1 class="logo">🌟 邻光</h1>
       <p class="subtitle">创建你的账号，加入社区</p>
       <form @submit.prevent="handleRegister">
@@ -119,83 +119,99 @@ async function handleRegister() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FFF9F0 0%, #FDE8C8 100%);
-  padding: 20px;
+  background: linear-gradient(135deg, var(--ng-bg-mobile) 0%, var(--ng-primary-soft) 100%);
+  padding: var(--ng-page-margin-mobile);
 }
 
 .login-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 40px 32px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  padding: 40px var(--ng-space-8);
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ng-shadow-float);
 }
 
 .logo {
-  font-size: 28px;
-  font-weight: 600;
-  color: #E8A33D;
-  text-align: center;
-  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  width: max-content;
+  margin: 0 auto var(--ng-space-4);
+  padding: var(--ng-space-3) var(--ng-space-6);
+  background: var(--ng-gradient-hero);
+  border-radius: var(--ng-radius-pill);
+  font-size: 24px;
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-primary-deep);
 }
 
 .subtitle {
   text-align: center;
-  color: #6B6560;
-  font-size: 14px;
-  margin-bottom: 32px;
+  color: var(--ng-text-secondary);
+  font-size: var(--ng-fs-body);
+  margin-bottom: var(--ng-space-8);
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: var(--ng-space-4);
 }
 
 .form-group label {
   display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin-bottom: 6px;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
+  margin-bottom: var(--ng-space-2);
 }
 
 .optional {
-  font-weight: 400;
-  font-size: 12px;
-  color: #6B6560;
+  font-weight: var(--ng-fw-body);
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #E0D8CE;
-  border-radius: 12px;
-  font-size: 15px;
+  padding: 12px 14px;
+  border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-input);
+  font-size: var(--ng-fs-body);
+  font-family: inherit;
+  color: var(--ng-text-main);
+  background: var(--ng-bg-card);
   outline: none;
-  transition: border-color 0.2s;
   box-sizing: border-box;
+  transition: border-color var(--ng-dur-fast) var(--ng-ease),
+              box-shadow var(--ng-dur-fast) var(--ng-ease);
 }
 
 .form-group input:focus {
-  border-color: #E8A33D;
+  border-color: var(--ng-primary);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
 }
 
 .form-group input.input-error {
-  border-color: #F44336;
+  border-color: var(--ng-risk-red);
+}
+
+.form-group input.input-error:focus {
+  border-color: var(--ng-risk-red);
+  box-shadow: 0 0 0 3px var(--ng-risk-red-soft);
 }
 
 .field-error {
   display: block;
-  color: #F44336;
-  font-size: 12px;
-  margin-top: 4px;
-  padding-left: 4px;
+  color: var(--ng-risk-red);
+  font-size: var(--ng-fs-small);
+  margin-top: var(--ng-space-1);
+  padding-left: var(--ng-space-1);
 }
 
 /* Role selection cards */
 .role-cards {
   display: flex;
-  gap: 12px;
+  gap: var(--ng-space-3);
 }
 
 .role-card {
@@ -203,25 +219,25 @@ async function handleRegister() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 14px 8px;
-  border: 1.5px solid #E0D8CE;
-  border-radius: 12px;
+  gap: var(--ng-space-1);
+  padding: 14px var(--ng-space-2);
+  border: 1.5px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-btn);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-  background: #fff;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+  background: var(--ng-bg-card);
   user-select: none;
 }
 
 .role-card:hover {
-  border-color: #E8A33D;
-  background: #FFFBF4;
+  border-color: var(--ng-primary);
+  background: var(--ng-bg-mobile);
 }
 
 .role-card.active {
-  border-color: #E8A33D;
-  background: #FFF7EC;
-  box-shadow: 0 0 0 1px #E8A33D;
+  border-color: var(--ng-primary);
+  background: var(--ng-primary-soft2);
+  box-shadow: 0 0 0 1px var(--ng-primary);
 }
 
 .role-icon {
@@ -230,58 +246,69 @@ async function handleRegister() {
 }
 
 .role-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
 }
 
 .role-desc {
-  font-size: 11px;
-  color: #6B6560;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
 }
 
 /* Button */
 .btn-primary {
   width: 100%;
   padding: 14px;
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s;
+  margin-top: var(--ng-space-2);
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 
 .btn-primary:hover {
-  background: #D4922E;
+  background: var(--ng-primary-dark);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
 }
 
 .btn-primary:disabled {
-  background: #ccc;
+  background: var(--ng-border-strong);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
 /* Messages */
 .error {
-  color: #F44336;
-  font-size: 13px;
+  color: var(--ng-risk-red);
+  font-size: var(--ng-fs-aux);
   text-align: center;
-  margin-top: 12px;
+  margin-top: var(--ng-space-3);
 }
 
 .link {
   text-align: center;
-  margin-top: 16px;
-  font-size: 14px;
-  color: #6B6560;
+  margin-top: var(--ng-space-4);
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-secondary);
 }
 
 .link a {
-  color: #E8A33D;
+  color: var(--ng-primary-deep);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: var(--ng-fw-strong);
+  transition: color var(--ng-dur-fast) var(--ng-ease);
+}
+
+.link a:hover {
+  color: var(--ng-primary-dark);
 }
 </style>

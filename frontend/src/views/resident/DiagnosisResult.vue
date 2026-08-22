@@ -284,9 +284,10 @@ onMounted(loadDiagnosis)
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--ng-dur-fast);
+  transition: background var(--ng-dur-fast) var(--ng-ease);
 }
-.icon-btn:active { background: var(--ng-bg-subtle); }
+.icon-btn:hover { background: var(--ng-bg-subtle); }
+.icon-btn:active { background: var(--ng-primary-soft2); transform: scale(0.98); }
 .header-spacer { width: 40px; }
 
 .loading-stack {
@@ -306,7 +307,7 @@ onMounted(loadDiagnosis)
   align-items: center;
   gap: 6px;
   background: var(--ng-primary);
-  color: #fff;
+  color: var(--ng-text-inverse);
   padding: 5px 14px;
   border-radius: var(--ng-radius-pill);
   font-size: var(--ng-fs-aux);
@@ -323,7 +324,7 @@ onMounted(loadDiagnosis)
   border-radius: var(--ng-radius-pill);
   font-size: var(--ng-fs-aux);
   background: var(--ng-risk-yellow-soft);
-  color: #8D6E00;
+  color: var(--ng-primary-deep);
 }
 
 .content-stack {
@@ -341,7 +342,7 @@ onMounted(loadDiagnosis)
 }
 .summary-title { margin-bottom: 0; }
 .summary-text {
-  font-size: 15px;
+  font-size: var(--ng-fs-body);
   line-height: 1.7;
   color: var(--ng-text-main);
   margin: 0 0 var(--ng-space-3) 0;
@@ -357,7 +358,7 @@ onMounted(loadDiagnosis)
 .confidence-value { font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); }
 .confidence-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--ng-primary-soft);
   border-radius: var(--ng-radius-pill);
   overflow: hidden;
 }
@@ -386,7 +387,7 @@ onMounted(loadDiagnosis)
   display: flex;
   align-items: center;
   gap: var(--ng-space-2);
-  font-size: 15px;
+  font-size: var(--ng-fs-card);
   font-weight: var(--ng-fw-title);
   color: var(--ng-text-main);
 }
@@ -405,7 +406,7 @@ onMounted(loadDiagnosis)
 .edit-btn--active,
 .edit-btn:active {
   background: var(--ng-primary);
-  color: #fff;
+  color: var(--ng-text-inverse);
 }
 
 .item-list { margin: 0; padding-left: 20px; }
@@ -442,17 +443,23 @@ onMounted(loadDiagnosis)
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
+.remove-btn:hover { background: var(--ng-risk-red); color: var(--ng-text-inverse); }
+.remove-btn:active { transform: scale(0.98); }
 .add-btn {
   padding: 8px 14px;
   background: var(--ng-primary);
-  color: #fff;
+  color: var(--ng-text-inverse);
   border: none;
   border-radius: var(--ng-radius-input);
   font-size: var(--ng-fs-aux);
   cursor: pointer;
   flex-shrink: 0;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
+.add-btn:hover { background: var(--ng-primary-dark); }
+.add-btn:active { transform: scale(0.98); }
 
 .insight-list,
 .question-list {
@@ -476,7 +483,7 @@ onMounted(loadDiagnosis)
   width: 24px;
   height: 24px;
   background: var(--ng-primary);
-  color: #fff;
+  color: var(--ng-text-inverse);
   border-radius: 50%;
   display: flex;
   align-items: center;

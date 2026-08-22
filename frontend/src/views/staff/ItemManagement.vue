@@ -41,7 +41,7 @@
 
     <!-- Stats -->
     <section class="stats-row">
-      <div class="stat-item">
+      <div class="stat-item ng-card--hero">
         <span class="stat-num">{{ itemsList.length }}</span>
         <span class="stat-label">物品总数</span>
       </div>
@@ -181,184 +181,213 @@ onBeforeUnmount(() => { clearTimeout(toastTimer) })
 
 <style scoped>
 .page {
-  max-width: 480px;
-  margin: 0 auto;
   min-height: 100vh;
-  background: #FFF9F0;
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
-  color: #2D2A26;
-  padding-bottom: 32px;
+  background: var(--ng-bg-desktop);
+  color: var(--ng-text-main);
+  padding: var(--ng-page-margin-desktop);
 }
 
 /* Toast */
 .toast {
-  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-  z-index: 1000; padding: 10px 24px; border-radius: 24px;
-  font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.12); white-space: nowrap;
+  position: fixed; top: var(--ng-space-4); left: 50%; transform: translateX(-50%);
+  z-index: 1000; padding: 10px 24px; border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux); font-weight: var(--ng-fw-strong);
+  box-shadow: var(--ng-shadow-float); white-space: nowrap;
 }
-.toast-success { background: #2D2A26; color: #fff; }
-.toast-error { background: #FF3B30; color: #fff; }
-.toast-fade-enter-active, .toast-fade-leave-active { transition: all 0.3s ease; }
+.toast-success { background: var(--ng-text-main); color: var(--ng-text-inverse); }
+.toast-error { background: var(--ng-risk-red); color: var(--ng-text-inverse); }
+.toast-fade-enter-active, .toast-fade-leave-active { transition: all var(--ng-dur-base) var(--ng-ease); }
 .toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
 
 /* Top Bar */
 .top-bar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; background: #fff; border-bottom: 1px solid #E0D8CE;
-  position: sticky; top: 0; z-index: 50;
+  padding-bottom: var(--ng-space-4); margin-bottom: var(--ng-space-5);
+  border-bottom: 1px solid var(--ng-border);
 }
 .btn-back {
-  display: flex; align-items: center; gap: 4px;
-  background: none; border: none; color: #E8A33D; font-size: 14px; font-weight: 500;
-  cursor: pointer; padding: 4px 0;
+  display: flex; align-items: center; gap: var(--ng-space-1);
+  background: none; border: none; color: var(--ng-primary);
+  font-size: var(--ng-fs-body); font-weight: var(--ng-fw-strong);
+  cursor: pointer; padding: 6px 10px; border-radius: var(--ng-radius-btn);
+  transition: background var(--ng-dur-fast) var(--ng-ease);
 }
-.page-title { font-size: 17px; font-weight: 700; margin: 0; }
+.btn-back:hover { background: var(--ng-primary-soft2); }
+.page-title { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); margin: 0; }
 .btn-add-top {
-  width: 34px; height: 34px; border-radius: 8px; border: 1px solid #E8A33D;
-  background: #E8A33D; color: #fff; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; transition: all 0.2s;
+  width: 36px; height: 36px; border-radius: var(--ng-radius-btn); border: none;
+  background: var(--ng-gradient-btn); color: var(--ng-text-inverse);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-add-top:hover { background: #D4922F; }
+.btn-add-top:hover { filter: brightness(0.94); }
+.btn-add-top:active { transform: scale(0.98); }
 
 /* Add Form */
 .add-form {
-  margin: 12px 16px; padding: 16px; background: #fff;
-  border: 1px solid #E0D8CE; border-radius: 12px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  margin-bottom: var(--ng-space-5); padding: var(--ng-card-padding);
+  background: var(--ng-bg-card);
+  border: 1px solid var(--ng-border); border-radius: var(--ng-radius-card);
+  box-shadow: var(--ng-shadow-card);
 }
-.form-title { font-size: 15px; font-weight: 600; margin: 0 0 14px; }
-.form-group { margin-bottom: 12px; }
-.form-label { display: block; font-size: 12px; font-weight: 600; color: #6B6560; margin-bottom: 6px; }
+.form-title { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); margin: 0 0 14px; }
+.form-group { margin-bottom: var(--ng-card-gap); }
+.form-label {
+  display: block; font-size: var(--ng-fs-small); font-weight: var(--ng-fw-title);
+  color: var(--ng-text-secondary); margin-bottom: 6px;
+}
 .form-input {
-  width: 100%; padding: 10px 12px; border: 1px solid #E0D8CE; border-radius: 8px;
-  font-size: 14px; color: #2D2A26; background: #fff; outline: none;
-  transition: border-color 0.2s; box-sizing: border-box;
+  width: 100%; padding: 10px var(--ng-space-3);
+  border: 1px solid var(--ng-border-strong); border-radius: var(--ng-radius-input);
+  font-size: var(--ng-fs-body); color: var(--ng-text-main); background: var(--ng-bg-card);
+  outline: none; transition: all var(--ng-dur-fast) var(--ng-ease); box-sizing: border-box;
 }
-.form-input:focus { border-color: #E8A33D; }
-.form-input::placeholder { color: #B8AFA3; }
+.form-input:focus { border-color: var(--ng-primary); box-shadow: 0 0 0 3px var(--ng-primary-tint); }
+.form-input::placeholder { color: var(--ng-text-hint); }
 .form-textarea {
-  width: 100%; padding: 10px 12px; border: 1px solid #E0D8CE; border-radius: 8px;
-  font-size: 14px; color: #2D2A26; background: #fff; outline: none;
-  resize: vertical; min-height: 70px; transition: border-color 0.2s;
+  width: 100%; padding: 10px var(--ng-space-3);
+  border: 1px solid var(--ng-border-strong); border-radius: var(--ng-radius-input);
+  font-size: var(--ng-fs-body); color: var(--ng-text-main); background: var(--ng-bg-card);
+  outline: none; resize: vertical; min-height: 70px;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
   box-sizing: border-box; font-family: inherit;
 }
-.form-textarea:focus { border-color: #E8A33D; }
-.form-textarea::placeholder { color: #B8AFA3; }
+.form-textarea:focus { border-color: var(--ng-primary); box-shadow: 0 0 0 3px var(--ng-primary-tint); }
+.form-textarea::placeholder { color: var(--ng-text-hint); }
 .form-actions { display: flex; gap: 10px; margin-top: 14px; }
 .btn-cancel {
-  flex: 1; padding: 10px; border: 1px solid #E0D8CE; border-radius: 10px;
-  background: #fff; font-size: 14px; color: #6B6560; cursor: pointer;
+  flex: 1; padding: 10px; border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-btn);
+  background: var(--ng-bg-card); font-size: var(--ng-fs-body); color: var(--ng-text-secondary);
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-cancel:hover { background: #F5F0E8; }
+.btn-cancel:hover { background: var(--ng-bg-subtle); }
 .btn-submit {
-  flex: 1; padding: 10px; border: none; border-radius: 10px;
-  background: #E8A33D; color: #fff; font-size: 14px; font-weight: 600;
+  flex: 1; padding: 10px; border: none; border-radius: var(--ng-radius-btn);
+  background: var(--ng-gradient-btn); color: var(--ng-text-inverse);
+  font-size: var(--ng-fs-body); font-weight: var(--ng-fw-title);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  gap: 6px; transition: background 0.2s;
+  gap: 6px; box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-submit:hover:not(:disabled) { background: #D4922F; }
+.btn-submit:hover:not(:disabled) { filter: brightness(0.94); }
+.btn-submit:active:not(:disabled) { transform: scale(0.98); }
 .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.form-slide-enter-active, .form-slide-leave-active { transition: all 0.3s ease; }
+.form-slide-enter-active, .form-slide-leave-active { transition: all var(--ng-dur-base) var(--ng-ease); }
 .form-slide-enter-from, .form-slide-leave-to { opacity: 0; transform: translateY(-10px); }
 
 /* Stats */
-.stats-row {
-  padding: 12px 16px 4px;
-}
+.stats-row { margin-bottom: var(--ng-space-5); }
 .stat-item {
-  background: #fff; border: 1px solid #E0D8CE; border-radius: 12px;
-  padding: 12px 16px; display: flex; align-items: center; gap: 10px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding); display: flex; align-items: center; gap: 10px;
+  box-shadow: var(--ng-shadow-card);
+  transition: all var(--ng-dur-base) var(--ng-ease);
 }
-.stat-num { font-size: 22px; font-weight: 700; color: #E8A33D; }
-.stat-label { font-size: 13px; color: #6B6560; }
+.stat-item:hover { box-shadow: var(--ng-shadow-card-hover); transform: translateY(-2px); }
+.stat-num { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); }
+.stat-label { font-size: var(--ng-fs-aux); }
+.stat-item.ng-card--hero .stat-num,
+.stat-item.ng-card--hero .stat-label { color: var(--ng-primary-deep); }
 
 /* Loading & Empty */
 .loading-state {
   display: flex; flex-direction: column; align-items: center;
-  padding: 60px 20px; color: #6B6560; gap: 12px;
+  padding: 60px var(--ng-space-5); color: var(--ng-text-secondary); gap: var(--ng-card-gap);
 }
-.loading-state p { font-size: 14px; margin: 0; }
+.loading-state p { font-size: var(--ng-fs-body); margin: 0; }
 .spinner {
-  width: 32px; height: 32px; border: 3px solid #E0D8CE;
-  border-top-color: #E8A33D; border-radius: 50%; animation: spin 0.8s linear infinite;
+  width: 32px; height: 32px; border: 3px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary); border-radius: 50%; animation: spin 0.8s linear infinite;
 }
 .spinner-sm {
-  width: 16px; height: 16px; border: 2px solid #E0D8CE;
-  border-top-color: #E8A33D; border-radius: 50%; animation: spin 0.8s linear infinite;
-  flex-shrink: 0;
+  width: 16px; height: 16px; border: 2px solid var(--ng-primary-tint);
+  border-top-color: var(--ng-text-inverse); border-radius: 50%;
+  animation: spin 0.8s linear infinite; flex-shrink: 0;
 }
-.spinner-red { border-top-color: #FF3B30; }
+.spinner-red { border-top-color: var(--ng-risk-red); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .empty-state {
   display: flex; flex-direction: column; align-items: center;
-  padding: 64px 24px; text-align: center;
+  padding: 64px var(--ng-space-6); text-align: center;
 }
-.empty-icon { margin-bottom: 16px; opacity: 0.6; }
-.empty-text { font-size: 15px; font-weight: 500; color: #2D2A26; margin: 0 0 6px; }
-.empty-hint { font-size: 13px; color: #6B6560; margin: 0; }
+.empty-icon { margin-bottom: var(--ng-space-4); opacity: 0.6; }
+.empty-text { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-strong); color: var(--ng-text-main); margin: 0 0 6px; }
+.empty-hint { font-size: var(--ng-fs-aux); color: var(--ng-text-secondary); margin: 0; }
 
 /* Items List */
-.items-list {
-  padding: 8px 16px; display: flex; flex-direction: column; gap: 10px;
-}
+.items-list { display: flex; flex-direction: column; gap: var(--ng-card-gap); }
 .item-card {
-  display: flex; align-items: flex-start; gap: 12px;
-  background: #fff; border: 1px solid #E0D8CE; border-radius: 12px;
-  padding: 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-  transition: box-shadow 0.2s;
+  display: flex; align-items: flex-start; gap: var(--ng-card-gap);
+  background: var(--ng-bg-card); border: 1px solid var(--ng-border);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding); box-shadow: var(--ng-shadow-card);
+  transition: all var(--ng-dur-base) var(--ng-ease);
 }
-.item-card:hover { box-shadow: 0 2px 12px rgba(232,163,61,0.1); }
+.item-card:hover { box-shadow: var(--ng-shadow-card-hover); transform: translateY(-2px); }
 .item-icon {
-  width: 40px; height: 40px; border-radius: 10px; background: #FFF9F0;
+  width: 40px; height: 40px; border-radius: var(--ng-radius-btn);
+  background: var(--ng-primary-soft2);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .item-body { flex: 1; min-width: 0; }
 .item-title {
-  font-size: 14px; font-weight: 600; color: #2D2A26; margin: 0 0 4px;
+  font-size: var(--ng-fs-body); font-weight: var(--ng-fw-title); color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-1);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .item-desc {
-  font-size: 12px; color: #6B6560; line-height: 1.5; margin: 0;
+  font-size: var(--ng-fs-small); color: var(--ng-text-secondary); line-height: 1.5; margin: 0;
   overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
   -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 .btn-delete {
-  flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px;
-  border: 1px solid #E0D8CE; background: #fff; color: #999;
+  flex-shrink: 0; width: 36px; height: 36px; border-radius: var(--ng-radius-btn);
+  border: 1px solid var(--ng-border-strong); background: var(--ng-bg-card);
+  color: var(--ng-text-hint);
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.2s;
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-delete:hover { border-color: #FF3B30; color: #FF3B30; background: #FFF5F5; }
+.btn-delete:hover:not(:disabled) {
+  border-color: var(--ng-risk-red); color: var(--ng-risk-red); background: var(--ng-risk-red-soft);
+}
+.btn-delete:active:not(:disabled) { transform: scale(0.98); }
 .btn-delete:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Modal */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200;
-  display: flex; align-items: center; justify-content: center; padding: 24px;
+  position: fixed; inset: 0; background: var(--ng-primary-tint);
+  backdrop-filter: blur(2px); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: var(--ng-space-6);
 }
 .modal-box {
-  background: #fff; border-radius: 16px; padding: 24px;
-  width: 100%; max-width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  background: var(--ng-bg-card); border-radius: var(--ng-radius-card);
+  padding: var(--ng-space-6);
+  width: 100%; max-width: 360px; box-shadow: var(--ng-shadow-float);
 }
-.modal-title { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
-.modal-desc { font-size: 14px; color: #4A4540; line-height: 1.6; margin: 0 0 20px; }
+.modal-title { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); margin: 0 0 var(--ng-card-gap); }
+.modal-desc { font-size: var(--ng-fs-body); color: var(--ng-text-secondary); line-height: 1.6; margin: 0 0 var(--ng-space-5); }
 .modal-actions { display: flex; gap: 10px; }
 .btn-modal-cancel {
-  flex: 1; padding: 10px; border: 1px solid #E0D8CE; border-radius: 10px;
-  background: #fff; font-size: 14px; color: #6B6560; cursor: pointer;
+  flex: 1; padding: 10px; border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-btn);
+  background: var(--ng-bg-card); font-size: var(--ng-fs-body); color: var(--ng-text-secondary);
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-modal-cancel:hover { background: #F5F0E8; }
+.btn-modal-cancel:hover { background: var(--ng-bg-subtle); }
 .btn-modal-confirm {
-  flex: 1; padding: 10px; border: none; border-radius: 10px;
-  background: #FF3B30; color: #fff; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: background 0.2s;
+  flex: 1; padding: 10px; border: none; border-radius: var(--ng-radius-btn);
+  background: var(--ng-risk-red); color: var(--ng-text-inverse);
+  font-size: var(--ng-fs-body); font-weight: var(--ng-fw-title);
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-modal-confirm:hover:not(:disabled) { background: #E0332A; }
+.btn-modal-confirm:hover:not(:disabled) { filter: brightness(0.92); }
+.btn-modal-confirm:active:not(:disabled) { transform: scale(0.98); }
 .btn-modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.modal-fade-enter-active, .modal-fade-leave-active { transition: all 0.25s ease; }
+.modal-fade-enter-active, .modal-fade-leave-active { transition: all var(--ng-dur-base) var(--ng-ease); }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 </style>

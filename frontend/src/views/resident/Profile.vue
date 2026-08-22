@@ -1,5 +1,5 @@
 <template>
-  <div class="page">
+  <div class="page ng-fade-in">
     <!-- Toast -->
     <Transition name="toast">
       <div v-if="toast.show" class="toast" :class="'toast-' + toast.type">{{ toast.msg }}</div>
@@ -544,7 +544,7 @@ onMounted(async () => {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #FFF9F0;
+  background: var(--ng-bg-mobile);
   padding-bottom: 80px;
   position: relative;
 }
@@ -557,35 +557,35 @@ onMounted(async () => {
   transform: translateX(-50%);
   z-index: 9999;
   padding: 10px 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
+  box-shadow: var(--ng-shadow-float);
   pointer-events: none;
 }
 .toast-success {
-  background: #fff;
-  color: #2D2A26;
-  border: 1px solid #E0D8CE;
+  background: var(--ng-bg-card);
+  color: var(--ng-text-main);
+  border: 1px solid var(--ng-border);
 }
 .toast-success::before {
   content: '\2713 ';
-  color: #34C759;
+  color: var(--ng-risk-green);
   font-weight: 700;
 }
 .toast-error {
-  background: #fff;
-  color: #2D2A26;
-  border: 1px solid #E0D8CE;
+  background: var(--ng-bg-card);
+  color: var(--ng-text-main);
+  border: 1px solid var(--ng-border);
 }
 .toast-error::before {
   content: '\2717 ';
-  color: #FF3B30;
+  color: var(--ng-risk-red);
   font-weight: 700;
 }
 .toast-enter-active,
 .toast-leave-active {
-  transition: opacity 0.3s, transform 0.3s;
+  transition: opacity var(--ng-dur-base) var(--ng-ease), transform var(--ng-dur-base) var(--ng-ease);
 }
 .toast-enter-from,
 .toast-leave-to {
@@ -600,15 +600,15 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 120px 0;
-  color: #6B6560;
-  font-size: 14px;
-  gap: 12px;
+  color: var(--ng-text-secondary);
+  font-size: var(--ng-fs-body);
+  gap: var(--ng-space-3);
 }
 .spinner {
   width: 28px;
   height: 28px;
-  border: 3px solid #E0D8CE;
-  border-top-color: #E8A33D;
+  border: 3px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -618,64 +618,66 @@ onMounted(async () => {
 
 /* Profile Card */
 .profile-card {
-  background: #fff;
-  margin: 16px;
-  border-radius: 12px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-  padding: 28px 20px 22px;
+  background: var(--ng-gradient-hero);
+  margin: var(--ng-space-4);
+  border-radius: var(--ng-radius-card);
+  box-shadow: var(--ng-shadow-card);
+  padding: 28px var(--ng-space-5) 22px;
   text-align: center;
 }
 .avatar-large {
   width: 76px;
   height: 76px;
   border-radius: 50%;
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
   font-size: 32px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
+  margin: 0 auto var(--ng-space-3);
   letter-spacing: 1px;
-  box-shadow: 0 4px 16px rgba(232,163,61,0.25);
+  box-shadow: var(--ng-shadow-btn), 0 0 0 3px var(--ng-bg-card);
 }
 .user-meta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: var(--ng-space-2);
+  margin-bottom: var(--ng-space-1);
 }
 .user-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #2D2A26;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-primary-deep);
   margin: 0;
 }
 .user-username {
-  font-size: 13px;
-  color: #B8AFA3;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-primary-deep);
+  opacity: 0.75;
   margin: 0 0 2px;
 }
 .role-badge {
   display: inline-block;
   padding: 2px 10px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: var(--ng-radius-tag);
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-title);
 }
 .role-resident {
-  background: #FFF3E0;
-  color: #E8A33D;
+  background: var(--ng-bg-card);
+  color: var(--ng-primary-deep);
 }
 .role-staff {
-  background: #E3F2FD;
-  color: #1976D2;
+  background: var(--ng-bg-card);
+  color: var(--ng-text-secondary);
+  border: 1px solid var(--ng-border-strong);
 }
 .join-date {
-  font-size: 13px;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
   margin: 0;
 }
 
@@ -683,51 +685,53 @@ onMounted(async () => {
 .stats-row {
   display: flex;
   gap: 10px;
-  margin: 0 16px 16px;
+  margin: 0 var(--ng-space-4) var(--ng-space-4);
 }
 .stat-card {
   flex: 1;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-  padding: 16px 8px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-card);
+  padding: var(--ng-space-4) var(--ng-space-2);
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--ng-space-1);
 }
 .stat-num {
   font-size: 24px;
   font-weight: 700;
-  color: #E8A33D;
+  color: var(--ng-primary);
   line-height: 1.1;
 }
 .stat-green {
-  color: #34C759;
+  color: var(--ng-risk-green);
 }
 .stat-amber {
-  color: #FF9500;
+  color: var(--ng-risk-orange);
 }
 .stat-label {
-  font-size: 12px;
-  color: #6B6560;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
 }
 
 /* Section Card */
 .section-card {
-  background: #fff;
-  margin: 0 16px 16px;
-  border-radius: 12px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-  padding: 20px;
+  background: var(--ng-bg-card);
+  margin: 0 var(--ng-space-4) var(--ng-space-4);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  box-shadow: var(--ng-shadow-card);
+  padding: var(--ng-space-5);
 }
 .section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2D2A26;
-  margin: 0 0 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #F0EBE3;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
+  margin: 0 0 var(--ng-space-4);
+  padding-bottom: var(--ng-space-3);
+  border-bottom: 1px solid var(--ng-border);
 }
 
 /* Form */
@@ -747,60 +751,60 @@ onMounted(async () => {
   justify-content: space-between;
 }
 .form-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-secondary);
 }
 .form-input {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #E0D8CE;
-  border-radius: 10px;
-  font-size: 14px;
-  color: #2D2A26;
-  background: #FFF9F0;
+  border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-input);
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
+  background: var(--ng-bg-card);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease);
   box-sizing: border-box;
 }
 .form-input:focus {
-  border-color: #E8A33D;
-  box-shadow: 0 0 0 3px rgba(232,163,61,0.12);
+  border-color: var(--ng-primary);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
 }
 .form-input::placeholder {
-  color: #B8AFA3;
+  color: var(--ng-text-hint);
 }
 .form-select {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #E0D8CE;
-  border-radius: 10px;
-  font-size: 14px;
-  color: #2D2A26;
-  background: #FFF9F0;
+  border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-input);
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
+  background: var(--ng-bg-card);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease);
   box-sizing: border-box;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%236B6560' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%239E9893' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 36px;
 }
 .form-select:focus {
-  border-color: #E8A33D;
-  box-shadow: 0 0 0 3px rgba(232,163,61,0.12);
+  border-color: var(--ng-primary);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
 }
 .form-error {
-  font-size: 12px;
-  color: #FF3B30;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-risk-red);
 }
 
 /* Toggle Switch */
 .toggle-switch {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ng-space-2);
   cursor: pointer;
   user-select: none;
 }
@@ -811,9 +815,9 @@ onMounted(async () => {
   position: relative;
   width: 44px;
   height: 24px;
-  background: #E0D8CE;
-  border-radius: 12px;
-  transition: background 0.25s;
+  background: var(--ng-border-strong);
+  border-radius: var(--ng-radius-pill);
+  transition: background var(--ng-dur-base) var(--ng-ease);
   flex-shrink: 0;
 }
 .toggle-slider::after {
@@ -823,41 +827,46 @@ onMounted(async () => {
   left: 3px;
   width: 18px;
   height: 18px;
-  background: #fff;
+  background: var(--ng-bg-card);
   border-radius: 50%;
-  transition: transform 0.25s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: transform var(--ng-dur-base) var(--ng-ease);
+  box-shadow: var(--ng-shadow-card);
 }
 .toggle-switch input:checked + .toggle-slider {
-  background: #E8A33D;
+  background: var(--ng-primary);
 }
 .toggle-switch input:checked + .toggle-slider::after {
   transform: translateX(20px);
 }
 .toggle-text {
-  font-size: 13px;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
 }
 
 /* Buttons */
 .btn-primary {
   width: 100%;
   padding: 12px;
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--ng-radius-btn);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: background 0.2s, opacity 0.2s;
-  margin-top: 4px;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+  margin-top: var(--ng-space-1);
 }
 .btn-primary:hover {
-  background: #D4922E;
+  filter: brightness(0.96);
+}
+.btn-primary:active {
+  transform: scale(0.98);
 }
 .btn-primary:disabled {
-  opacity: 0.6;
+  background: var(--ng-border-strong);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -866,41 +875,41 @@ onMounted(async () => {
   margin-bottom: 18px;
 }
 .risk-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
   margin: 0 0 10px;
 }
 .risk-bar {
   display: flex;
   height: 10px;
-  border-radius: 5px;
+  border-radius: var(--ng-radius-pill);
   overflow: hidden;
-  background: #F0EBE3;
-  margin-bottom: 8px;
+  background: var(--ng-bg-subtle);
+  margin-bottom: var(--ng-space-2);
 }
 .risk-segment {
   min-width: 2px;
-  transition: width 0.4s ease;
+  transition: width var(--ng-dur-slow) var(--ng-ease);
 }
 .risk-empty-text {
   width: 100%;
   text-align: center;
-  font-size: 11px;
-  color: #B8AFA3;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
   line-height: 10px;
 }
 .risk-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--ng-space-3);
 }
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #6B6560;
+  gap: var(--ng-space-1);
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
 }
 .legend-dot {
   width: 8px;
@@ -911,33 +920,33 @@ onMounted(async () => {
 
 /* Recent Cases */
 .recent-section {
-  border-top: 1px solid #F0EBE3;
-  padding-top: 16px;
+  border-top: 1px solid var(--ng-border);
+  padding-top: var(--ng-space-4);
 }
 .recent-empty {
-  font-size: 13px;
-  color: #B8AFA3;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-hint);
   text-align: center;
-  padding: 16px 0;
+  padding: var(--ng-space-4) 0;
 }
 .recent-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #F5F0E8;
+  padding: var(--ng-space-3) 0;
+  border-bottom: 1px solid var(--ng-border);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--ng-dur-fast) var(--ng-ease);
   margin: 0 -4px;
   padding-left: 4px;
   padding-right: 4px;
-  border-radius: 8px;
+  border-radius: var(--ng-radius-tag);
 }
 .recent-item:last-child {
   border-bottom: none;
 }
 .recent-item:hover {
-  background: #FFF9F0;
+  background: var(--ng-bg-mobile);
 }
 .recent-item-left {
   display: flex;
@@ -951,14 +960,14 @@ onMounted(async () => {
   border-radius: 50%;
   flex-shrink: 0;
 }
-.dot-green { background: #34C759; }
-.dot-yellow { background: #FF9500; }
-.dot-orange { background: #FF6B35; }
-.dot-red { background: #FF3B30; }
+.dot-green { background: var(--ng-risk-green); }
+.dot-yellow { background: var(--ng-risk-yellow); }
+.dot-orange { background: var(--ng-risk-orange); }
+.dot-red { background: var(--ng-risk-red); }
 .recent-item-title {
-  font-size: 14px;
-  color: #2D2A26;
-  font-weight: 500;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
+  font-weight: var(--ng-fw-strong);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -966,37 +975,37 @@ onMounted(async () => {
   max-width: 200px;
 }
 .recent-item-date {
-  font-size: 12px;
-  color: #B8AFA3;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
   margin: 2px 0 0;
 }
 .status-tag {
   display: inline-block;
   padding: 3px 10px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: var(--ng-radius-tag);
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-title);
   flex-shrink: 0;
 }
 .status-draft {
-  background: #F5F0E8;
-  color: #6B6560;
+  background: var(--ng-bg-subtle);
+  color: var(--ng-text-secondary);
 }
 .status-diagnosed {
-  background: #FFF3E0;
-  color: #E8A33D;
+  background: var(--ng-primary-soft);
+  color: var(--ng-primary-deep);
 }
 .status-in_progress {
-  background: #FFF8E1;
-  color: #FF9500;
+  background: var(--ng-risk-orange-soft);
+  color: var(--ng-risk-orange);
 }
 .status-resolved {
-  background: #E8F5E9;
-  color: #34C759;
+  background: var(--ng-risk-green-soft);
+  color: var(--ng-risk-green);
 }
 .status-escalated {
-  background: #FBE9E7;
-  color: #FF3B30;
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
 }
 
 /* Action List */
@@ -1007,12 +1016,12 @@ onMounted(async () => {
 .action-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--ng-space-3);
   padding: 14px 4px;
-  border-bottom: 1px solid #F5F0E8;
+  border-bottom: 1px solid var(--ng-border);
   cursor: pointer;
-  transition: background 0.15s;
-  border-radius: 8px;
+  transition: background var(--ng-dur-fast) var(--ng-ease);
+  border-radius: var(--ng-radius-tag);
   margin: 0 -4px;
   padding-left: 4px;
   padding-right: 4px;
@@ -1021,15 +1030,15 @@ onMounted(async () => {
   border-bottom: none;
 }
 .action-item:hover {
-  background: #FFF9F0;
+  background: var(--ng-bg-mobile);
 }
 .action-item-danger:hover {
-  background: #FFF5F5;
+  background: var(--ng-risk-red-soft);
 }
 .action-icon {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--ng-radius-btn);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1040,32 +1049,32 @@ onMounted(async () => {
   height: 18px;
 }
 .action-icon-case {
-  background: #FFF3E0;
-  color: #E8A33D;
+  background: var(--ng-primary-soft2);
+  color: var(--ng-primary-deep);
 }
 .action-icon-group {
-  background: #E8F5E9;
-  color: #34C759;
+  background: var(--ng-risk-green-soft);
+  color: var(--ng-risk-green);
 }
 .action-icon-lock {
-  background: #FFF8E1;
-  color: #FF9500;
+  background: var(--ng-risk-yellow-soft);
+  color: var(--ng-risk-orange);
 }
 .action-icon-logout {
-  background: #FBE9E7;
-  color: #FF3B30;
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
 }
 .action-text {
   flex: 1;
   font-size: 15px;
-  font-weight: 500;
-  color: #2D2A26;
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
 }
 .action-item-danger .action-text {
-  color: #FF3B30;
+  color: var(--ng-risk-red);
 }
 .action-arrow {
-  color: #B8AFA3;
+  color: var(--ng-text-hint);
   font-size: 20px;
   font-weight: 300;
 }
@@ -1073,90 +1082,92 @@ onMounted(async () => {
 /* Security Footer */
 .security-footer {
   text-align: center;
-  padding: 20px 16px 32px;
+  padding: var(--ng-space-5) var(--ng-space-4) var(--ng-space-8);
 }
 .security-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 13px;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
 }
 .shield-icon {
   width: 16px;
   height: 16px;
-  color: #34C759;
+  color: var(--ng-risk-green);
   flex-shrink: 0;
 }
 .privacy-link {
   display: inline-block;
   margin-top: 6px;
-  font-size: 12px;
-  color: #E8A33D;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-primary-deep);
   text-decoration: none;
 }
 .privacy-link:hover {
   text-decoration: underline;
 }
 .version-text {
-  font-size: 11px;
-  color: #B8AFA3;
-  margin-top: 8px;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-hint);
+  margin-top: var(--ng-space-2);
 }
 
 /* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: var(--ng-text-main);
+  background: color-mix(in srgb, var(--ng-text-main) 45%, transparent);
   z-index: 5000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: var(--ng-space-6);
 }
 .modal-box {
-  background: #fff;
-  border-radius: 16px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
   width: 100%;
   max-width: 400px;
-  padding: 24px 20px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  padding: var(--ng-space-6) var(--ng-space-5);
+  box-shadow: var(--ng-shadow-float);
 }
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: var(--ng-space-5);
 }
 .modal-header h3 {
   font-size: 17px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
   margin: 0;
 }
 .modal-close {
   background: none;
   border: none;
   font-size: 24px;
-  color: #B8AFA3;
+  color: var(--ng-text-hint);
   cursor: pointer;
-  padding: 0 4px;
+  padding: 0 var(--ng-space-1);
   line-height: 1;
+  transition: color var(--ng-dur-fast) var(--ng-ease);
 }
 .modal-close:hover {
-  color: #2D2A26;
+  color: var(--ng-text-main);
 }
 
 /* Modal transitions */
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.25s;
+  transition: opacity var(--ng-dur-base) var(--ng-ease);
 }
 .modal-enter-active .modal-box,
 .modal-leave-active .modal-box {
-  transition: transform 0.25s;
+  transition: transform var(--ng-dur-base) var(--ng-ease);
 }
 .modal-enter-from,
 .modal-leave-to {
@@ -1177,14 +1188,13 @@ onMounted(async () => {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  background: #fff;
-  border-top: 1px solid #E0D8CE;
+  background: var(--ng-bg-card);
+  border-top: 1px solid var(--ng-border-strong);
   display: flex;
   align-items: stretch;
   justify-content: space-around;
   padding: 6px 0 env(safe-area-inset-bottom, 0);
   z-index: 1000;
-  box-shadow: 0 -1px 8px rgba(0,0,0,0.04);
 }
 .nav-item {
   display: flex;
@@ -1195,12 +1205,12 @@ onMounted(async () => {
   padding: 6px 0;
   flex: 1;
   text-decoration: none;
-  color: #6B6560;
-  font-size: 11px;
-  transition: color 0.2s;
+  color: var(--ng-text-secondary);
+  font-size: var(--ng-fs-small);
+  transition: color var(--ng-dur-fast) var(--ng-ease);
 }
 .nav-item.active {
-  color: #E8A33D;
+  color: var(--ng-primary);
 }
 .nav-icon {
   width: 22px;

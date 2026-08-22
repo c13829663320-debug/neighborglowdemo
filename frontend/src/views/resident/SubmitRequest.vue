@@ -1,5 +1,5 @@
 <template>
-  <div class="submit-page">
+  <div class="submit-page ng-fade-in">
     <header class="top-bar">
       <button @click="$router.back()" class="btn-back">← 返回</button>
       <h1>描述问题</h1>
@@ -17,7 +17,7 @@
       </div>
 
       <!-- 案例确认卡片（AI 认为信息足够时显示） -->
-      <div v-if="casePending" class="confirm-card">
+      <div v-if="casePending" class="confirm-card ng-card">
         <div class="confirm-header">
           <span class="checkmark">✓</span>
           <h3>信息已收集完毕</h3>
@@ -30,13 +30,13 @@
           </div>
         </div>
         <div class="confirm-actions">
-          <button @click="confirmCreate" class="btn-primary">确认创建案例 →</button>
-          <button @click="continueChat" class="btn-secondary">再补充一些信息</button>
+          <button @click="confirmCreate" class="ng-btn ng-btn-primary ng-btn-block">确认创建案例 →</button>
+          <button @click="continueChat" class="ng-btn ng-btn-secondary ng-btn-block">再补充一些信息</button>
         </div>
       </div>
 
       <!-- 创建完成后的结果卡片 -->
-      <div v-if="createdCase" class="result-card">
+      <div v-if="createdCase" class="result-card ng-card">
         <div class="result-header">
           <span class="checkmark">✓</span>
           <h3>案例已创建</h3>
@@ -44,7 +44,7 @@
         <div class="result-body">
           <div class="result-row">
             <span class="label">风险等级</span>
-            <span :class="'risk-badge risk-' + createdCase.risk_level">{{ riskLabel(createdCase.risk_level) }}</span>
+            <span :class="'ng-risk-badge ng-risk-soft-' + createdCase.risk_level">{{ riskLabel(createdCase.risk_level) }}</span>
           </div>
           <div class="result-row">
             <span class="label">问题分类</span>
@@ -52,15 +52,15 @@
           </div>
         </div>
         <div class="result-actions">
-          <button @click="goToDiagnosis" class="btn-primary">查看 AI 诊断 →</button>
-          <button @click="$router.push('/resident')" class="btn-secondary">返回首页</button>
+          <button @click="goToDiagnosis" class="ng-btn ng-btn-primary ng-btn-block">查看 AI 诊断 →</button>
+          <button @click="$router.push('/resident')" class="ng-btn ng-btn-secondary ng-btn-block">返回首页</button>
         </div>
       </div>
 
       <!-- 输入区域 -->
       <div v-if="!createdCase && !casePending" class="form-area">
         <div class="input-with-voice">
-          <textarea v-model="input" :placeholder="inputPlaceholder" rows="3" @keydown.enter.ctrl="submit" :disabled="loading"></textarea>
+          <textarea v-model="input" class="ng-textarea" :placeholder="inputPlaceholder" rows="3" @keydown.enter.ctrl="submit" :disabled="loading"></textarea>
           <button class="btn-voice" :class="{ recording: isRecording }" @click="toggleVoice" type="button">
             <svg v-if="!isRecording" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
@@ -90,7 +90,7 @@
           </label>
         </div>
 
-        <button @click="submit" :disabled="!input.trim() || loading" class="btn-send">发送</button>
+        <button @click="submit" :disabled="!input.trim() || loading" class="ng-btn ng-btn-primary btn-send">发送</button>
       </div>
     </main>
   </div>
@@ -330,98 +330,87 @@ function categoryLabel(cat) {
 }
 </script>
 <style scoped>
-.submit-page { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #FFF9F0; display: flex; flex-direction: column; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
-.btn-back { background: none; border: none; font-size: 14px; color: #E8A33D; cursor: pointer; }
-.top-bar h1 { font-size: 17px; font-weight: 600; }
-.main-content { flex: 1; display: flex; flex-direction: column; padding: 0 20px 20px; }
+/* ---- 页面容器（移动端 480px / 奶油白底 / 左右 20px） ---- */
+.submit-page { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--ng-bg-mobile); display: flex; flex-direction: column; font-family: var(--ng-font-family); color: var(--ng-text-main); }
 
-.chat-area { flex: 1; overflow-y: auto; padding-bottom: 16px; }
-.chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; margin-bottom: 12px; font-size: 14px; line-height: 1.6; animation: fadeIn 0.3s; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.chat-bubble.ai { background: #fff; color: #2D2A26; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-.chat-bubble.user { background: #E8A33D; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+/* ---- 顶栏 ---- */
+.top-bar { display: flex; justify-content: space-between; align-items: center; padding: var(--ng-space-4) var(--ng-page-margin-mobile); background: var(--ng-bg-card); border-bottom: 1px solid var(--ng-border); position: sticky; top: 0; z-index: 10; }
+.btn-back { background: none; border: none; font-size: var(--ng-fs-body); color: var(--ng-primary-deep); font-weight: var(--ng-fw-strong); cursor: pointer; transition: color var(--ng-dur-fast) var(--ng-ease); }
+.btn-back:hover { color: var(--ng-primary); }
+.top-bar h1 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); }
+.main-content { flex: 1; display: flex; flex-direction: column; padding: var(--ng-space-4) var(--ng-page-margin-mobile) var(--ng-space-5); }
 
-.typing { display: inline-flex; gap: 4px; }
-.typing .dot { width: 6px; height: 6px; background: #E8A33D; border-radius: 50%; animation: bounce 1.4s infinite; }
+/* ---- 对话区 ---- */
+.chat-area { flex: 1; overflow-y: auto; padding: var(--ng-space-4) 0; }
+.chat-bubble { max-width: 85%; padding: var(--ng-space-3) var(--ng-space-4); border-radius: var(--ng-radius-card); margin-bottom: var(--ng-card-gap); font-size: var(--ng-fs-body); line-height: var(--ng-lh); animation: bubble-in var(--ng-dur-base) var(--ng-ease) both; }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.chat-bubble.ai { background: var(--ng-bg-card); color: var(--ng-text-main); border-bottom-left-radius: var(--ng-radius-tag); border: 1px solid var(--ng-border); box-shadow: var(--ng-shadow-card); }
+.chat-bubble.user { background: var(--ng-gradient-btn); color: var(--ng-text-inverse); margin-left: auto; border-bottom-right-radius: var(--ng-radius-tag); box-shadow: var(--ng-shadow-btn); }
+
+.typing { display: inline-flex; gap: var(--ng-space-1); }
+.typing .dot { width: 6px; height: 6px; background: var(--ng-primary); border-radius: 50%; animation: bounce 1.4s infinite; }
 .typing .dot:nth-child(2) { animation-delay: 0.2s; }
 .typing .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
 
-.input-area { display: flex; gap: 8px; align-items: flex-end; }
-.input-area textarea { flex: 1; padding: 12px 16px; border: 1px solid #E0D8CE; border-radius: 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; transition: border-color 0.2s; }
-.input-area textarea:focus { border-color: #E8A33D; }
-.btn-send { background: #E8A33D; color: #fff; border: none; border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-.btn-send:hover { background: #D4922E; }
-.btn-send:disabled { background: #ccc; cursor: not-allowed; }
-
-/* 案例确认卡片 */
-.confirm-card { background: #fff; border-radius: 16px; padding: 24px; margin-top: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); animation: slideUp 0.4s; border: 2px solid #E8A33D; }
-.confirm-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.checkmark { width: 32px; height: 32px; border-radius: 50%; background: #4CAF50; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
-.confirm-header h3 { font-size: 18px; font-weight: 600; }
-.confirm-body { margin-bottom: 20px; }
-.confirm-body .summary { font-size: 14px; color: #2D2A26; line-height: 1.6; margin-bottom: 12px; }
-.confirm-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-.confirm-row .label { font-size: 14px; color: #6B6560; }
+/* ---- 案例确认卡片（.ng-card 基础 + 琥珀强调边） ---- */
+.confirm-card { margin-top: var(--ng-space-4); border: 2px solid var(--ng-primary); animation: slide-up var(--ng-dur-slow) var(--ng-ease) both; }
+.confirm-header { display: flex; align-items: center; gap: var(--ng-space-3); margin-bottom: var(--ng-space-4); }
+.checkmark { width: 32px; height: 32px; border-radius: 50%; background: var(--ng-risk-green); color: var(--ng-text-inverse); display: flex; align-items: center; justify-content: center; font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); }
+.confirm-header h3 { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); margin: 0; }
+.confirm-body { margin-bottom: var(--ng-space-5); }
+.confirm-body .summary { font-size: var(--ng-fs-body); color: var(--ng-text-main); line-height: var(--ng-lh); margin-bottom: var(--ng-space-3); }
+.confirm-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--ng-border); }
+.confirm-row .label { font-size: var(--ng-fs-body); color: var(--ng-text-secondary); }
 .confirm-actions { display: flex; flex-direction: column; gap: 10px; }
 
-/* 结果卡片 */
-.result-card { background: #fff; border-radius: 16px; padding: 24px; margin-top: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); animation: slideUp 0.4s; }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.result-header h3 { font-size: 18px; font-weight: 600; }
-.result-body { margin-bottom: 20px; }
-.result-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+/* ---- 结果卡片 ---- */
+.result-card { margin-top: var(--ng-space-4); animation: slide-up var(--ng-dur-slow) var(--ng-ease) both; }
+@keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.result-header { display: flex; align-items: center; gap: var(--ng-space-3); margin-bottom: var(--ng-space-4); }
+.result-header h3 { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); margin: 0; }
+.result-body { margin-bottom: var(--ng-space-5); }
+.result-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--ng-border); }
 .result-row:last-child { border-bottom: none; }
-.result-row .label { font-size: 14px; color: #6B6560; }
-.risk-badge { padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
-.risk-badge.risk-green { background: #E8F5E9; color: #4CAF50; }
-.risk-badge.risk-yellow { background: #FFF8E1; color: #F9A825; }
-.risk-badge.risk-orange { background: #FFF3E0; color: #E65100; }
-.risk-badge.risk-red { background: #FFEBEE; color: #C62828; }
-
+.result-row .label { font-size: var(--ng-fs-body); color: var(--ng-text-secondary); }
 .result-actions { display: flex; flex-direction: column; gap: 10px; }
-.btn-primary { background: #E8A33D; color: #fff; border: none; border-radius: 12px; padding: 14px 24px; font-size: 15px; font-weight: 600; cursor: pointer; }
-.btn-primary:hover { background: #D4922E; }
-.btn-secondary { background: none; border: 1px solid #E0D8CE; border-radius: 12px; padding: 12px 24px; font-size: 14px; color: #6B6560; cursor: pointer; }
-.btn-secondary:hover { border-color: #E8A33D; color: #E8A33D; }
 
-/* Form area layout */
-.form-area { display: flex; flex-direction: column; gap: 12px; }
+/* ---- 输入区 ---- */
+.form-area { display: flex; flex-direction: column; gap: var(--ng-card-gap); }
 .form-area .btn-send { align-self: flex-end; }
-
-/* Voice input */
 .input-with-voice { position: relative; }
-.input-with-voice textarea { width: 100%; padding: 12px 16px; border: 1px solid #E0D8CE; border-radius: 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; transition: border-color 0.2s; box-sizing: border-box; }
-.input-with-voice textarea:focus { border-color: #E8A33D; }
+.input-with-voice textarea { resize: none; box-sizing: border-box; }
+
+/* ---- 语音输入 ---- */
 .btn-voice {
   display: flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border: 1px solid #E0D8CE; border-radius: 20px;
-  background: #fff; color: #6B6560; font-size: 13px; cursor: pointer;
-  transition: all 0.2s; margin-top: 8px;
+  padding: var(--ng-space-2) var(--ng-space-4); border: 1px solid var(--ng-border-strong); border-radius: var(--ng-radius-pill);
+  background: var(--ng-bg-card); color: var(--ng-text-secondary); font-size: var(--ng-fs-aux); cursor: pointer;
+  transition: all var(--ng-dur-fast) var(--ng-ease); margin-top: var(--ng-space-2); font-family: var(--ng-font-family);
 }
-.btn-voice:hover { border-color: #E8A33D; color: #E8A33D; }
-.btn-voice.recording { border-color: #FF3B30; color: #FF3B30; animation: pulse 1.5s infinite; }
-.recording-dot { width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; animation: blink 1s infinite; display: inline-block; }
+.btn-voice:hover { border-color: var(--ng-primary); color: var(--ng-primary-deep); }
+.btn-voice.recording { border-color: var(--ng-risk-red); color: var(--ng-risk-red); animation: pulse 1.5s infinite; }
+.recording-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ng-risk-red); animation: blink 1s infinite; display: inline-block; }
 @keyframes blink { 50% { opacity: 0.3; } }
-@keyframes pulse { 50% { box-shadow: 0 0 0 4px rgba(255,59,48,0.15); } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px var(--ng-risk-red-soft); } }
 
-/* Image upload */
-.image-upload-section { margin-top: 4px; }
-.section-label { font-size: 14px; color: #6B6560; margin-bottom: 8px; }
-.preview-wrap { position: relative; display: inline-block; margin-top: 8px; }
-.preview-img { max-width: 100%; max-height: 200px; border-radius: 12px; border: 1px solid #E0D8CE; }
+/* ---- 图片上传 ---- */
+.image-upload-section { margin-top: var(--ng-space-1); }
+.section-label { font-size: var(--ng-fs-body); color: var(--ng-text-secondary); margin-bottom: var(--ng-space-2); }
+.preview-wrap { position: relative; display: inline-block; margin-top: var(--ng-space-2); }
+.preview-img { max-width: 100%; max-height: 200px; border-radius: var(--ng-radius-btn); border: 1px solid var(--ng-border-strong); }
 .btn-remove-img {
   position: absolute; top: -8px; right: -8px;
   width: 24px; height: 24px; border-radius: 50%;
-  background: #FF3B30; color: #fff; border: none;
-  font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  background: var(--ng-risk-red); color: var(--ng-text-inverse); border: none;
+  font-size: var(--ng-fs-small); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: transform var(--ng-dur-fast) var(--ng-ease);
 }
+.btn-remove-img:hover { transform: scale(1.1); }
 .upload-trigger {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 24px; border: 2px dashed #E0D8CE; border-radius: 12px;
-  cursor: pointer; transition: all 0.2s; color: #B8AFA3; font-size: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: var(--ng-space-2);
+  padding: var(--ng-space-6); border: 2px dashed var(--ng-border-strong); border-radius: var(--ng-radius-btn);
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease); color: var(--ng-text-hint); font-size: var(--ng-fs-body);
 }
-.upload-trigger:hover { border-color: #E8A33D; color: #E8A33D; }
+.upload-trigger:hover { border-color: var(--ng-primary); color: var(--ng-primary-deep); }
 </style>

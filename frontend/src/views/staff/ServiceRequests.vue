@@ -20,7 +20,7 @@
     <!-- Stats -->
     <section class="stats-bar">
       <div class="stats-scroll">
-        <div class="stat-chip stat-pending">
+        <div class="stat-chip stat-pending ng-card--hero">
           <span class="stat-num">{{ stats.pending }}</span>
           <span class="stat-label">待处理</span>
         </div>
@@ -257,172 +257,197 @@ onBeforeUnmount(() => { clearTimeout(toastTimer) })
 
 <style scoped>
 .page {
-  max-width: 480px; margin: 0 auto; min-height: 100vh;
-  background: #FFF9F0; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
-  color: #2D2A26; padding-bottom: 32px;
+  min-height: 100vh;
+  background: var(--ng-bg-desktop);
+  color: var(--ng-text-main);
+  padding: var(--ng-page-margin-desktop);
 }
 
 /* Toast */
 .toast {
-  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-  z-index: 1000; padding: 10px 24px; border-radius: 24px;
-  font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.12); white-space: nowrap;
+  position: fixed; top: var(--ng-space-4); left: 50%; transform: translateX(-50%);
+  z-index: 1000; padding: 10px 24px; border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux); font-weight: var(--ng-fw-strong);
+  box-shadow: var(--ng-shadow-float); white-space: nowrap;
 }
-.toast-success { background: #2D2A26; color: #fff; }
-.toast-error { background: #FF3B30; color: #fff; }
-.toast-fade-enter-active, .toast-fade-leave-active { transition: all 0.3s ease; }
+.toast-success { background: var(--ng-text-main); color: var(--ng-text-inverse); }
+.toast-error { background: var(--ng-risk-red); color: var(--ng-text-inverse); }
+.toast-fade-enter-active, .toast-fade-leave-active { transition: all var(--ng-dur-base) var(--ng-ease); }
 .toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
 
 /* Top Bar */
 .top-bar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; background: #fff; border-bottom: 1px solid #E0D8CE;
-  position: sticky; top: 0; z-index: 50;
+  padding-bottom: var(--ng-space-4); margin-bottom: var(--ng-space-5);
+  border-bottom: 1px solid var(--ng-border);
 }
 .btn-back {
-  display: flex; align-items: center; gap: 4px;
-  background: none; border: none; color: #E8A33D; font-size: 14px; font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; gap: var(--ng-space-1);
+  background: none; border: none; color: var(--ng-primary);
+  font-size: var(--ng-fs-body); font-weight: var(--ng-fw-strong); cursor: pointer;
+  padding: 6px 10px; border-radius: var(--ng-radius-btn);
+  transition: background var(--ng-dur-fast) var(--ng-ease);
 }
-.page-title { font-size: 17px; font-weight: 700; margin: 0; }
+.btn-back:hover { background: var(--ng-primary-soft2); }
+.page-title { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); margin: 0; }
 .btn-refresh {
-  background: none; border: 1px solid #E0D8CE; border-radius: 8px;
-  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: #6B6560; transition: all 0.2s;
+  background: var(--ng-bg-card); border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-btn);
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--ng-text-secondary);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-refresh:hover { background: #FFF9F0; border-color: #E8A33D; color: #E8A33D; }
+.btn-refresh:hover { background: var(--ng-primary-soft2); border-color: var(--ng-primary); color: var(--ng-primary); }
 .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinning { animation: spin 0.8s linear infinite; }
 
-/* Stats Bar */
-.stats-bar { padding: 12px 16px 4px; }
+/* Stats */
+.stats-bar { margin-bottom: var(--ng-space-5); }
 .stats-scroll {
-  display: flex; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; padding-bottom: 4px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ng-card-gap);
 }
-.stats-scroll::-webkit-scrollbar { display: none; }
 .stat-chip {
-  flex-shrink: 0; min-width: 80px; background: #fff; border: 1px solid #E0D8CE;
-  border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column;
-  align-items: center; gap: 4px; box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  background: var(--ng-bg-card); border: 1px solid var(--ng-border);
+  border-radius: var(--ng-radius-card); padding: var(--ng-card-padding);
+  display: flex; flex-direction: column; align-items: center; gap: var(--ng-space-1);
+  box-shadow: var(--ng-shadow-card);
+  transition: all var(--ng-dur-base) var(--ng-ease);
 }
-.stat-num { font-size: 22px; font-weight: 700; line-height: 1; }
-.stat-label { font-size: 11px; color: #6B6560; white-space: nowrap; }
-.stat-pending .stat-num { color: #FF9500; }
-.stat-handling .stat-num { color: #E8A33D; }
-.stat-completed .stat-num { color: #34C759; }
-.stat-total .stat-num { color: #2D2A26; }
+.stat-chip:hover { box-shadow: var(--ng-shadow-card-hover); transform: translateY(-2px); }
+.stat-num { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); line-height: 1; }
+.stat-label { font-size: var(--ng-fs-small); color: var(--ng-text-secondary); white-space: nowrap; }
+.stat-chip.ng-card--hero .stat-num,
+.stat-chip.ng-card--hero .stat-label { color: var(--ng-primary-deep); }
+.stat-pending .stat-num { color: var(--ng-risk-orange); }
+.stat-handling .stat-num { color: var(--ng-primary-deep); }
+.stat-completed .stat-num { color: var(--ng-risk-green); }
+.stat-total .stat-num { color: var(--ng-text-main); }
 
 /* Filter Tabs */
-.filter-section { padding: 8px 16px 4px; }
-.filter-tabs {
-  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
-  -webkit-overflow-scrolling: touch; padding-bottom: 4px;
-}
-.filter-tabs::-webkit-scrollbar { display: none; }
+.filter-section { margin-bottom: var(--ng-space-5); }
+.filter-tabs { display: flex; gap: var(--ng-space-2); flex-wrap: wrap; }
 .filter-tab {
-  flex-shrink: 0; display: flex; align-items: center; gap: 4px;
-  padding: 6px 14px; border-radius: 20px; border: 1px solid #E0D8CE;
-  background: #fff; font-size: 13px; color: #6B6560; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  display: flex; align-items: center; gap: var(--ng-space-1);
+  padding: 6px 14px; border-radius: var(--ng-radius-pill);
+  border: 1px solid var(--ng-border-strong);
+  background: var(--ng-bg-card); font-size: var(--ng-fs-aux); color: var(--ng-text-secondary);
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease); white-space: nowrap;
 }
-.filter-tab:hover { border-color: #E8A33D; color: #E8A33D; }
-.filter-tab.active { background: #E8A33D; color: #fff; border-color: #E8A33D; }
+.filter-tab:hover { border-color: var(--ng-primary); color: var(--ng-primary-deep); background: var(--ng-primary-soft2); }
+.filter-tab.active {
+  background: var(--ng-gradient-btn); color: var(--ng-text-inverse);
+  border-color: transparent; box-shadow: var(--ng-shadow-btn);
+}
 .tab-badge {
-  font-size: 11px; min-width: 18px; height: 18px; line-height: 18px; text-align: center;
-  border-radius: 9px; background: rgba(0,0,0,0.08); padding: 0 5px;
+  font-size: var(--ng-fs-small); min-width: 18px; height: 18px; line-height: 18px;
+  text-align: center; border-radius: var(--ng-radius-pill);
+  background: var(--ng-bg-subtle); color: var(--ng-text-secondary); padding: 0 5px;
 }
-.filter-tab.active .tab-badge { background: rgba(255,255,255,0.3); }
+.filter-tab.active .tab-badge { background: var(--ng-text-inverse); color: var(--ng-primary-deep); }
 
 /* Loading & Empty */
 .loading-state {
   display: flex; flex-direction: column; align-items: center;
-  padding: 60px 20px; color: #6B6560; gap: 12px;
+  padding: 60px var(--ng-space-5); color: var(--ng-text-secondary); gap: var(--ng-card-gap);
 }
-.loading-state p { font-size: 14px; margin: 0; }
+.loading-state p { font-size: var(--ng-fs-body); margin: 0; }
 .spinner {
-  width: 32px; height: 32px; border: 3px solid #E0D8CE;
-  border-top-color: #E8A33D; border-radius: 50%; animation: spin 0.8s linear infinite;
+  width: 32px; height: 32px; border: 3px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary); border-radius: 50%; animation: spin 0.8s linear infinite;
 }
 .spinner-sm {
-  width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4);
-  border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+  width: 14px; height: 14px; border: 2px solid var(--ng-primary-tint);
+  border-top-color: var(--ng-text-inverse); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
   flex-shrink: 0; display: inline-block; vertical-align: middle;
 }
 .empty-state {
   display: flex; flex-direction: column; align-items: center;
-  padding: 64px 24px; text-align: center;
+  padding: 64px var(--ng-space-6); text-align: center;
 }
-.empty-icon { margin-bottom: 16px; opacity: 0.6; }
-.empty-text { font-size: 15px; font-weight: 500; color: #2D2A26; margin: 0 0 6px; }
-.empty-hint { font-size: 13px; color: #6B6560; margin: 0; }
+.empty-icon { margin-bottom: var(--ng-space-4); opacity: 0.6; }
+.empty-text { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-strong); color: var(--ng-text-main); margin: 0 0 6px; }
+.empty-hint { font-size: var(--ng-fs-aux); color: var(--ng-text-secondary); margin: 0; }
 
 /* Request List */
-.request-list {
-  padding: 8px 16px; display: flex; flex-direction: column; gap: 12px;
-}
+.request-list { display: flex; flex-direction: column; gap: var(--ng-card-gap); }
 .request-card {
-  background: #fff; border: 1px solid #E0D8CE; border-radius: 12px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.06); overflow: hidden; transition: all 0.2s;
+  background: var(--ng-bg-card); border: 1px solid var(--ng-border);
+  border-radius: var(--ng-radius-card); box-shadow: var(--ng-shadow-card);
+  overflow: hidden; transition: all var(--ng-dur-base) var(--ng-ease);
 }
-.request-card.expanded {
-  border-color: #E8A33D; box-shadow: 0 2px 16px rgba(232,163,61,0.12);
-}
+.request-card:hover { box-shadow: var(--ng-shadow-card-hover); transform: translateY(-2px); }
+.request-card.expanded { border-color: var(--ng-primary); box-shadow: var(--ng-shadow-card-hover); transform: none; }
 
-.card-header { padding: 14px; cursor: pointer; position: relative; }
+.card-header { padding: var(--ng-card-padding); cursor: pointer; position: relative; }
 .card-title-row {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--ng-space-2); margin-bottom: var(--ng-space-2);
 }
 .card-title {
-  font-size: 15px; font-weight: 600; color: #2D2A26; margin: 0; line-height: 1.4;
-  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); color: var(--ng-text-main);
+  margin: 0; line-height: 1.4; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 
 /* Status Tag */
 .status-tag {
-  font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px;
+  font-size: var(--ng-fs-small); font-weight: var(--ng-fw-title);
+  padding: 2px 10px; border-radius: var(--ng-radius-pill);
   white-space: nowrap; flex-shrink: 0;
 }
-.status-pending { background: #FFF3E0; color: #E65100; }
-.status-handling { background: #FFF8E1; color: #F57F17; }
-.status-completed { background: #E8F5E9; color: #2E7D32; }
+.status-pending { background: var(--ng-risk-orange-soft); color: var(--ng-risk-orange); }
+.status-handling { background: var(--ng-primary-soft); color: var(--ng-primary-deep); }
+.status-completed { background: var(--ng-risk-green-soft); color: var(--ng-risk-green); }
 
 .card-meta {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
-  font-size: 12px; color: #6B6560;
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--ng-space-2);
+  font-size: var(--ng-fs-small); color: var(--ng-text-secondary);
 }
-.meta-id { background: #F5F0E8; padding: 1px 8px; border-radius: 8px; font-size: 11px; }
+.meta-id { background: var(--ng-bg-subtle); padding: 1px 8px; border-radius: var(--ng-radius-tag); font-size: var(--ng-fs-small); }
 .meta-time, .meta-user { display: flex; align-items: center; gap: 3px; }
-.meta-time svg, .meta-user svg { opacity: 0.5; }
+.meta-time svg, .meta-user svg { opacity: 0.6; }
 
 .expand-icon {
-  position: absolute; right: 14px; bottom: 10px; color: #B8AFA3;
+  position: absolute; right: var(--ng-card-padding); bottom: 10px; color: var(--ng-text-hint);
 }
 
 /* Detail */
-.card-detail { padding: 0 14px 14px; }
-.detail-divider { height: 1px; background: #E0D8CE; margin-bottom: 12px; }
+.card-detail { padding: 0 var(--ng-card-padding) var(--ng-card-padding); }
+.detail-divider { height: 1px; background: var(--ng-border); margin-bottom: var(--ng-card-gap); }
 .detail-label {
-  font-size: 12px; font-weight: 600; color: #E8A33D; margin: 0 0 6px;
+  font-size: var(--ng-fs-small); font-weight: var(--ng-fw-title);
+  color: var(--ng-primary-deep); margin: 0 0 6px;
 }
 .detail-text {
-  font-size: 13px; line-height: 1.7; color: #4A4540; margin: 0 0 14px;
-  background: #FFFCF7; border: 1px solid #F0E8DC; border-radius: 8px; padding: 10px 12px;
+  font-size: var(--ng-fs-aux); line-height: 1.7; color: var(--ng-text-main);
+  margin: 0 0 14px;
+  background: var(--ng-primary-soft2); border: 1px solid var(--ng-border);
+  border-radius: var(--ng-radius-input); padding: 10px var(--ng-space-3);
 }
 
-.detail-actions { display: flex; gap: 8px; }
+.detail-actions { display: flex; gap: var(--ng-space-2); }
 .btn-action {
-  flex: 1; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all 0.2s; display: flex; align-items: center;
-  justify-content: center; gap: 6px;
+  flex: 1; padding: 9px var(--ng-space-3); border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-aux); font-weight: var(--ng-fw-strong);
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
+.btn-action:active:not(:disabled) { transform: scale(0.98); }
 .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-handle { background: #E8A33D; color: #fff; border: none; }
-.btn-handle:hover:not(:disabled) { background: #D4922F; }
-.btn-complete { background: #fff; color: #34C759; border: 1px solid #34C759; }
-.btn-complete:hover:not(:disabled) { background: #F0FFF4; }
+.btn-handle {
+  background: var(--ng-gradient-btn); color: var(--ng-text-inverse);
+  border: none; box-shadow: var(--ng-shadow-btn);
+}
+.btn-handle:hover:not(:disabled) { filter: brightness(0.94); }
+.btn-complete {
+  background: var(--ng-bg-card); color: var(--ng-risk-green);
+  border: 1px solid var(--ng-risk-green);
+}
+.btn-complete:hover:not(:disabled) { background: var(--ng-risk-green-soft); }
 
-.detail-slide-enter-active, .detail-slide-leave-active { transition: all 0.3s ease; }
+.detail-slide-enter-active, .detail-slide-leave-active { transition: all var(--ng-dur-base) var(--ng-ease); }
 .detail-slide-enter-from, .detail-slide-leave-to { opacity: 0; max-height: 0; overflow: hidden; }
 .detail-slide-enter-to, .detail-slide-leave-from { opacity: 1; max-height: 500px; overflow: hidden; }
 </style>

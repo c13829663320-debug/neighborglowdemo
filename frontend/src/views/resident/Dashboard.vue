@@ -1,5 +1,5 @@
 <template>
-  <div class="resident-dashboard">
+  <div class="resident-dashboard ng-fade-in">
     <header class="top-bar">
       <h1>🌟 邻光</h1>
       <div class="user-info">
@@ -8,13 +8,13 @@
       </div>
     </header>
     <main class="main-content">
-      <section class="hero">
+      <section class="hero ng-card--hero">
         <h2>邻里之间，有些话只是需要换一种方式说。</h2>
         <p>描述你遇到的问题，邻光会帮你理清情况、找到合适的表达，并陪你练习下一次沟通。</p>
-        <button @click="$router.push('/resident/submit')" class="btn-primary">开始梳理问题</button>
+        <button @click="$router.push('/resident/submit')" class="ng-btn ng-btn-primary ng-btn-block">开始梳理问题</button>
       </section>
       <section class="quick-scenarios">
-        <h3>快捷场景</h3>
+        <h3 class="ng-section-title">快捷场景</h3>
         <div class="scenario-grid">
           <div v-for="s in scenarios" :key="s.key" class="scenario-card" @click="selectScenario(s)">
             <span class="scenario-icon">{{ s.icon }}</span>
@@ -24,20 +24,20 @@
       </section>
       <section class="my-cases">
         <div class="section-header">
-          <h3>我的案例</h3>
+          <h3 class="ng-section-title">我的案例</h3>
           <a class="link-more" @click.prevent="router.push('/resident/my-requests')">查看全部</a>
         </div>
-        <div v-if="cases.length === 0" class="empty-state">
-          <div class="empty-icon">🌱</div>
-          <p class="empty-title">第一次使用？</p>
-          <p class="empty-text">从描述你遇到的问题开始，<br />邻光会帮你理清情况，一起想办法怎么开口。</p>
-          <button class="btn-primary empty-btn" @click="router.push('/resident/submit')">开始描述问题</button>
+        <div v-if="cases.length === 0" class="empty-state ng-empty">
+          <div class="empty-icon ng-empty-icon">🌱</div>
+          <p class="empty-title ng-empty-title">第一次使用？</p>
+          <p class="empty-text ng-empty-desc">从描述你遇到的问题开始，<br />邻光会帮你理清情况，一起想办法怎么开口。</p>
+          <button class="ng-btn ng-btn-primary ng-btn-block empty-btn" @click="router.push('/resident/submit')">开始描述问题</button>
           <p class="empty-tip">也可以点击上方常见场景快速开始</p>
         </div>
         <div v-else class="case-list">
-          <div v-for="c in cases.slice(0, 3)" :key="c.id" class="case-card clickable" :class="'risk-' + c.risk_level" @click="router.push('/resident/case/' + c.id)">
+          <div v-for="c in cases.slice(0, 3)" :key="c.id" class="case-card clickable ng-card" :class="'risk-' + c.risk_level" @click="router.push('/resident/case/' + c.id)">
             <div class="case-header">
-              <span class="risk-badge" :class="'risk-' + c.risk_level"></span>
+              <span class="ng-risk-badge" :class="'ng-risk-soft-' + c.risk_level"></span>
               <span class="case-title">{{ c.title }}</span>
             </div>
             <p class="case-desc">{{ c.description?.slice(0, 60) }}...</p>
@@ -110,62 +110,72 @@ function selectScenario(s) {
 }
 </script>
 <style scoped>
-.resident-dashboard { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #FFF9F0; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; color: #2D2A26; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #fff; border-bottom: 1px solid #E0D8CE; position: sticky; top: 0; z-index: 10; }
-.top-bar h1 { font-size: 20px; color: #E8A33D; margin: 0; }
-.user-info { display: flex; align-items: center; gap: 10px; }
-.user-name { font-size: 14px; color: #2D2A26; font-weight: 500; cursor: pointer; }
-.avatar { width: 32px; height: 32px; border-radius: 50%; background: #E8A33D; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; cursor: pointer; transition: transform 0.2s; }
-.avatar:hover { transform: scale(1.1); }
-.main-content { padding: 0 20px 100px; }
-.hero { background: linear-gradient(135deg, #FDE8C8, #FFF3E0); border-radius: 16px; padding: 24px; margin: 16px 0 24px; }
-.hero h2 { font-size: 20px; font-weight: 600; color: #2D2A26; margin-bottom: 12px; line-height: 1.4; }
-.hero p { font-size: 14px; color: #6B6560; margin-bottom: 20px; line-height: 1.6; }
-.btn-primary { background: #E8A33D; color: #fff; border: none; border-radius: 12px; padding: 14px 32px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
-.btn-primary:hover { background: #D4922E; }
-.quick-scenarios { margin-bottom: 24px; }
-.quick-scenarios h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
-.scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.scenario-card { background: #fff; border-radius: 12px; padding: 16px 8px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.2s; border: 1px solid #E0D8CE; }
-.scenario-card:hover { transform: translateY(-2px); border-color: #E8A33D; }
-.scenario-icon { font-size: 24px; display: block; margin-bottom: 6px; }
-.scenario-label { font-size: 13px; color: #2D2A26; }
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.section-header h3 { font-size: 16px; font-weight: 600; margin: 0; }
-.link-more { font-size: 13px; color: #E8A33D; cursor: pointer; text-decoration: none; }
-.link-more:hover { text-decoration: underline; }
-.my-cases { margin-bottom: 24px; }
-.empty-state { text-align: center; padding: 36px 24px; color: #9E9893; font-size: 14px; background: #fff; border-radius: 16px; border: 1px dashed #E0C9A6; animation: ng-fade-in 0.35s ease; }
-.empty-icon { font-size: 40px; margin-bottom: 12px; }
-.empty-title { font-size: 17px; font-weight: 600; color: #2D2A26; margin: 0 0 8px; }
-.empty-text { font-size: 14px; color: #6B6560; line-height: 1.7; margin: 0 0 20px; }
-.empty-btn { max-width: 260px; margin: 0 auto; }
-.empty-tip { font-size: 12px; color: #9E9893; margin: 14px 0 0; }
-.case-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid #34C759; transition: transform 0.15s, box-shadow 0.15s; border: 1px solid #E0D8CE; border-left: 4px solid #34C759; }
-.case-card.clickable { cursor: pointer; }
-.case-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(232,163,61,0.12); }
-.case-card.risk-yellow { border-left-color: #FF9500; }
-.case-card.risk-orange { border-left-color: #FF6B35; }
-.case-card.risk-red { border-left-color: #FF3B30; }
-.case-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.case-title { font-size: 15px; font-weight: 600; }
-.case-desc { font-size: 13px; color: #6B6560; margin-bottom: 8px; line-height: 1.5; }
-.case-meta { display: flex; justify-content: space-between; font-size: 12px; color: #9E9893; }
+/* ---- 页面容器（移动端 480px / 奶油白底 / 左右 20px） ---- */
+.resident-dashboard { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--ng-bg-mobile); font-family: var(--ng-font-family); color: var(--ng-text-main); }
 
-/* Bottom Navigation */
+/* ---- 顶栏 ---- */
+.top-bar { display: flex; justify-content: space-between; align-items: center; padding: var(--ng-space-4) var(--ng-page-margin-mobile); background: var(--ng-bg-card); border-bottom: 1px solid var(--ng-border-strong); position: sticky; top: 0; z-index: 10; }
+.top-bar h1 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); color: var(--ng-primary); margin: 0; }
+.user-info { display: flex; align-items: center; gap: var(--ng-space-3); }
+.user-name { font-size: var(--ng-fs-body); color: var(--ng-text-main); font-weight: var(--ng-fw-strong); cursor: pointer; transition: color var(--ng-dur-fast) var(--ng-ease); }
+.user-name:hover { color: var(--ng-primary-deep); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--ng-gradient-btn); color: var(--ng-text-inverse); display: flex; align-items: center; justify-content: center; font-size: var(--ng-fs-body); font-weight: var(--ng-fw-title); cursor: pointer; box-shadow: var(--ng-shadow-btn); transition: transform var(--ng-dur-fast) var(--ng-ease); }
+.avatar:hover { transform: scale(1.1); }
+
+.main-content { padding: 0 var(--ng-page-margin-mobile) 100px; }
+
+/* ---- 主视觉卡：琥珀渐变 + 深琥珀文字 ---- */
+.hero { border-radius: var(--ng-radius-card); padding: var(--ng-space-6); margin: var(--ng-space-4) 0 var(--ng-space-6); }
+.hero h2 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); margin-bottom: var(--ng-space-3); line-height: 1.4; }
+.hero p { font-size: var(--ng-fs-body); color: var(--ng-primary-deep); margin-bottom: var(--ng-space-5); line-height: 1.6; }
+
+/* ---- 快捷场景 ---- */
+.quick-scenarios { margin-bottom: var(--ng-space-6); }
+.scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ng-card-gap); }
+.scenario-card { background: var(--ng-bg-card); border-radius: var(--ng-radius-card); padding: var(--ng-space-4) var(--ng-space-2); text-align: center; cursor: pointer; box-shadow: var(--ng-shadow-card); border: 1px solid var(--ng-border); transition: all var(--ng-dur-fast) var(--ng-ease); }
+.scenario-card:hover { transform: translateY(-2px); border-color: var(--ng-primary); box-shadow: var(--ng-shadow-card-hover); }
+.scenario-icon { font-size: 24px; display: block; margin-bottom: var(--ng-space-1); }
+.scenario-label { font-size: var(--ng-fs-aux); color: var(--ng-text-main); }
+
+/* ---- 我的案例 ---- */
+.my-cases { margin-bottom: var(--ng-space-6); }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--ng-space-3); }
+.section-header h3 { margin: 0; }
+.link-more { font-size: var(--ng-fs-aux); color: var(--ng-primary-deep); font-weight: var(--ng-fw-strong); cursor: pointer; text-decoration: none; transition: color var(--ng-dur-fast) var(--ng-ease); }
+.link-more:hover { color: var(--ng-primary); text-decoration: underline; }
+
+/* ---- 空状态（套用 .ng-empty 系列） ---- */
+.empty-state { background: var(--ng-bg-card); border-radius: var(--ng-radius-card); border: 1px dashed var(--ng-border-strong); }
+.empty-btn { max-width: 260px; margin: 0 auto; }
+.empty-tip { font-size: var(--ng-fs-small); color: var(--ng-text-hint); margin: var(--ng-space-2) 0 0; }
+
+/* ---- 案例卡片列表 ---- */
+.case-list { display: flex; flex-direction: column; gap: var(--ng-card-gap); }
+.case-card { cursor: pointer; border-left: 4px solid var(--ng-risk-green); transition: transform var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease), border-color var(--ng-dur-fast) var(--ng-ease); }
+.case-card:hover { transform: translateY(-2px); box-shadow: var(--ng-shadow-card-hover); }
+.case-card.risk-yellow { border-left-color: var(--ng-risk-yellow); }
+.case-card.risk-orange { border-left-color: var(--ng-risk-orange); }
+.case-card.risk-red { border-left-color: var(--ng-risk-red); }
+.case-header { display: flex; align-items: center; gap: var(--ng-space-2); margin-bottom: var(--ng-space-2); }
+.case-title { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); color: var(--ng-text-main); }
+.case-desc { font-size: var(--ng-fs-aux); color: var(--ng-text-secondary); margin-bottom: var(--ng-space-2); line-height: 1.5; }
+.case-meta { display: flex; justify-content: space-between; font-size: var(--ng-fs-small); color: var(--ng-text-hint); }
+.case-status { font-weight: var(--ng-fw-strong); color: var(--ng-text-secondary); }
+
+/* ---- 底部导航 ---- */
 .bottom-nav {
   position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 480px; background: #fff; border-top: 1px solid #E0D8CE;
+  width: 100%; max-width: 480px; background: var(--ng-bg-card); border-top: 1px solid var(--ng-border-strong);
   display: flex; justify-content: space-around; align-items: center;
-  padding: 8px 0 env(safe-area-inset-bottom, 8px); z-index: 50;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  padding: var(--ng-space-2) 0 env(safe-area-inset-bottom, 8px); z-index: 50;
+  box-shadow: var(--ng-shadow-card);
 }
 .nav-item {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 4px 12px; cursor: pointer; color: #B8AFA3; text-decoration: none;
-  transition: color 0.2s;
+  padding: var(--ng-space-1) var(--ng-space-3); cursor: pointer; color: var(--ng-text-hint); text-decoration: none;
+  transition: color var(--ng-dur-fast) var(--ng-ease);
 }
-.nav-item:hover { color: #E8A33D; }
-.nav-item.active { color: #E8A33D; }
-.nav-item span { font-size: 11px; font-weight: 500; }
+.nav-item:hover { color: var(--ng-primary); }
+.nav-item.active { color: var(--ng-primary); }
+.nav-item span { font-size: var(--ng-fs-small); font-weight: var(--ng-fw-strong); }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="case-detail-page">
+  <div class="case-detail-page ng-fade-in">
     <header class="top-bar">
       <button class="btn-back" @click="$router.back()">&#8592; 返回</button>
       <h1>{{ caseData?.title || '案例详情' }}</h1>
@@ -15,7 +15,7 @@
     <!-- Error -->
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <button class="btn-retry" @click="fetchCase">重试</button>
+      <button class="btn-retry ng-btn ng-btn-primary" @click="fetchCase">重试</button>
     </div>
 
     <!-- Content -->
@@ -28,7 +28,7 @@
 
       <!-- Risk + Status Banner -->
       <div class="status-banner">
-        <span class="risk-badge" :class="'risk-' + caseData.risk_level">
+        <span class="ng-risk-badge" :class="'ng-risk-' + caseData.risk_level">
           {{ riskLabel(caseData.risk_level) }}
         </span>
         <span class="status-badge" :class="'status-' + caseData.status">
@@ -305,31 +305,32 @@ onMounted(fetchCase)
 </script>
 
 <style scoped>
+/* ---- 页面容器（移动端 480px / 奶油白底） ---- */
 .case-detail-page {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #FFF9F0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  color: #2D2A26;
-  padding-bottom: 32px;
+  background: var(--ng-bg-mobile);
+  font-family: var(--ng-font-family);
+  color: var(--ng-text-main);
+  padding-bottom: var(--ng-space-8);
 }
 
-/* ---- Top Bar ---- */
+/* ---- 顶栏 ---- */
 .top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  background: #fff;
-  border-bottom: 1px solid #E0D8CE;
+  padding: var(--ng-space-3) var(--ng-space-4);
+  background: var(--ng-bg-card);
+  border-bottom: 1px solid var(--ng-border-strong);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 .top-bar h1 {
-  font-size: 17px;
-  font-weight: 600;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
   margin: 0;
   flex: 1;
   text-align: center;
@@ -340,33 +341,35 @@ onMounted(fetchCase)
 .btn-back {
   background: none;
   border: none;
-  color: #E8A33D;
-  font-size: 15px;
-  font-weight: 500;
+  color: var(--ng-primary-deep);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
   cursor: pointer;
-  padding: 4px 0;
+  padding: var(--ng-space-1) 0;
   white-space: nowrap;
+  transition: color var(--ng-dur-fast) var(--ng-ease);
 }
+.btn-back:hover { color: var(--ng-primary); }
 .top-bar-spacer {
   width: 50px;
 }
 
-/* ---- Loading / Error ---- */
+/* ---- 加载 / 错误 ---- */
 .loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 20px;
-  color: #6B6560;
-  font-size: 15px;
-  gap: 12px;
+  padding: 80px var(--ng-page-margin-mobile);
+  color: var(--ng-text-secondary);
+  font-size: var(--ng-fs-body);
+  gap: var(--ng-space-3);
 }
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #E0D8CE;
-  border-top-color: #E8A33D;
+  border: 3px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -375,95 +378,74 @@ onMounted(fetchCase)
 }
 .error-state {
   text-align: center;
-  padding: 80px 20px;
-  color: #6B6560;
+  padding: 80px var(--ng-page-margin-mobile);
+  color: var(--ng-text-secondary);
 }
 .btn-retry {
-  margin-top: 12px;
-  padding: 8px 24px;
-  background: #E8A33D;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
+  margin-top: var(--ng-space-3);
 }
 
-/* ---- Content ---- */
+/* ---- 内容区 ---- */
 .content {
-  padding: 16px;
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile);
 }
 
-/* ---- Status Banner ---- */
+/* ---- 风险 + 状态横幅（风险徽章使用全局 .ng-risk-badge） ---- */
 .status-banner {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: var(--ng-space-4);
 }
-.risk-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #fff;
-}
-.risk-green { background: var(--ng-risk-green); }
-.risk-yellow { background: var(--ng-risk-yellow); color: #2D2A26; }
-.risk-orange { background: var(--ng-risk-orange); }
-.risk-red { background: var(--ng-risk-red); }
-
 .status-badge {
   display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  background: #F5EDE0;
-  color: #6B6560;
+  padding: 5px 12px;
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-strong);
+  background: var(--ng-bg-subtle);
+  color: var(--ng-text-secondary);
 }
 .status-resolved {
-  background: #E8F5E9;
-  color: #4CAF50;
+  background: var(--ng-risk-green-soft);
+  color: var(--ng-risk-green);
 }
 .status-escalated {
-  background: #FFEBEE;
-  color: #F44336;
+  background: var(--ng-risk-red-soft);
+  color: var(--ng-risk-red);
 }
 
-/* ---- Info Card ---- */
+/* ---- 案例信息卡 ---- */
 .info-card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #E0D8CE;
-  padding: 16px;
-  margin-bottom: 16px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  padding: var(--ng-card-padding);
+  margin-bottom: var(--ng-space-4);
+  box-shadow: var(--ng-shadow-card);
 }
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid #F5EDE0;
+  border-bottom: 1px solid var(--ng-border);
 }
 .info-row:last-child {
   border-bottom: none;
 }
 .info-label {
-  font-size: 13px;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
   flex-shrink: 0;
 }
 .info-value {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
   text-align: right;
 }
 .info-desc {
-  padding-top: 12px;
-  border-top: 1px solid #F5EDE0;
-  margin-top: 4px;
+  padding-top: var(--ng-space-3);
 }
 .info-desc .info-label {
   display: block;
@@ -471,21 +453,22 @@ onMounted(fetchCase)
 }
 .info-desc p {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #2D2A26;
+  font-size: var(--ng-fs-body);
+  line-height: var(--ng-lh);
+  color: var(--ng-text-main);
 }
 
-/* ---- Stats ---- */
+/* ---- 统计行 ---- */
 .stats-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #E0D8CE;
-  padding: 16px;
-  margin-bottom: 16px;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  padding: var(--ng-card-padding);
+  margin-bottom: var(--ng-space-4);
+  box-shadow: var(--ng-shadow-card);
   gap: 0;
 }
 .stat-item {
@@ -493,31 +476,32 @@ onMounted(fetchCase)
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: var(--ng-space-1);
 }
 .stat-num {
-  font-size: 22px;
-  font-weight: 700;
-  color: #E8A33D;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-primary);
 }
 .stat-label {
-  font-size: 12px;
-  color: #6B6560;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
 }
 .stat-divider {
   width: 1px;
   height: 32px;
-  background: #E0D8CE;
+  background: var(--ng-border-strong);
 }
 
-/* ---- Stepper ---- */
+/* ---- 处理流程步骤器 ---- */
 .stepper-section {
-  margin-top: 4px;
+  margin-top: var(--ng-space-1);
 }
 .section-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 16px 0;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  margin: 0 0 var(--ng-space-4) 0;
+  color: var(--ng-text-main);
 }
 .stepper {
   display: flex;
@@ -525,7 +509,7 @@ onMounted(fetchCase)
 }
 .stepper-item {
   display: flex;
-  gap: 14px;
+  gap: var(--ng-space-3);
   min-height: 90px;
 }
 .stepper-item:last-child {
@@ -535,7 +519,7 @@ onMounted(fetchCase)
   display: none;
 }
 
-/* Timeline column */
+/* 时间轴列 */
 .stepper-timeline {
   display: flex;
   flex-direction: column;
@@ -550,67 +534,69 @@ onMounted(fetchCase)
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--ng-fs-small);
+  font-weight: var(--ng-fw-title);
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: all var(--ng-dur-base) var(--ng-ease);
 }
 .dot-check {
-  font-size: 13px;
+  font-size: var(--ng-fs-aux);
 }
 .dot-num {
-  font-size: 12px;
+  font-size: var(--ng-fs-small);
 }
 
-/* Completed */
+/* 已完成 */
 .is-completed .stepper-dot {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
+  box-shadow: var(--ng-shadow-btn);
 }
 .is-completed .dot-num {
   display: none;
 }
-/* Active */
+/* 进行中 */
 .is-active .stepper-dot {
-  background: #fff;
-  border: 2.5px solid #E8A33D;
-  color: #E8A33D;
-  box-shadow: 0 0 0 4px rgba(232, 163, 61, 0.15);
+  background: var(--ng-bg-card);
+  border: 2px solid var(--ng-primary);
+  color: var(--ng-primary-deep);
+  box-shadow: 0 0 0 4px var(--ng-primary-tint);
 }
-/* Pending */
+/* 待开始 */
 .is-pending .stepper-dot {
-  background: #F5EDE0;
-  color: #BDB5AA;
+  background: var(--ng-bg-subtle);
+  color: var(--ng-text-hint);
 }
 
 .stepper-line {
   width: 2px;
   flex: 1;
-  background: #E0D8CE;
-  margin: 4px 0;
+  background: var(--ng-border-strong);
+  margin: var(--ng-space-1) 0;
   min-height: 16px;
-  border-radius: 1px;
+  border-radius: var(--ng-radius-pill);
 }
 .line-filled {
-  background: #E8A33D;
+  background: var(--ng-primary);
 }
 
-/* Content */
+/* 步骤内容卡 */
 .stepper-content {
   flex: 1;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #E0D8CE;
-  padding: 14px;
-  margin-bottom: 12px;
-  transition: border-color 0.3s ease;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  border: 1px solid var(--ng-border);
+  padding: var(--ng-card-padding);
+  margin-bottom: var(--ng-card-gap);
+  transition: border-color var(--ng-dur-base) var(--ng-ease),
+              box-shadow var(--ng-dur-base) var(--ng-ease);
 }
 .is-active .stepper-content {
-  border-color: #E8A33D;
-  box-shadow: 0 2px 12px rgba(232, 163, 61, 0.1);
+  border-color: var(--ng-primary);
+  box-shadow: var(--ng-shadow-card-hover);
 }
 .is-completed .stepper-content {
-  border-color: #E8D5B5;
+  border-color: var(--ng-border-strong);
 }
 .is-pending .stepper-content {
   opacity: 0.7;
@@ -620,104 +606,113 @@ onMounted(fetchCase)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: var(--ng-space-1);
 }
 .stepper-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
 }
 .stepper-status-tag {
-  font-size: 11px;
+  font-size: var(--ng-fs-small);
   padding: 2px 8px;
-  border-radius: 10px;
-  font-weight: 500;
+  border-radius: var(--ng-radius-tag);
+  font-weight: var(--ng-fw-strong);
 }
 .tag-completed {
-  background: #FFF3E0;
-  color: #E8A33D;
+  background: var(--ng-primary-soft2);
+  color: var(--ng-primary-deep);
 }
 .tag-active {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
 }
 .tag-pending {
-  background: #F5EDE0;
-  color: #BDB5AA;
+  background: var(--ng-bg-subtle);
+  color: var(--ng-text-hint);
 }
 
 .stepper-desc {
-  font-size: 13px;
-  color: #6B6560;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
   margin: 0 0 10px 0;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-/* Step buttons */
+/* 步骤按钮 */
 .btn-step {
   display: inline-block;
-  padding: 6px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 6px var(--ng-space-4);
+  border-radius: var(--ng-radius-tag);
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-strong);
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+  font-family: var(--ng-font-family);
 }
 .btn-completed {
-  background: #FFF3E0;
-  color: #E8A33D;
+  background: var(--ng-primary-soft2);
+  color: var(--ng-primary-deep);
 }
 .btn-completed:hover {
-  background: #FDEBD0;
+  background: var(--ng-primary-soft);
 }
 .btn-active {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
+  box-shadow: var(--ng-shadow-btn);
 }
 .btn-active:hover {
-  background: #D4922E;
+  filter: brightness(0.95);
+}
+.btn-active:active {
+  transform: scale(0.98);
 }
 .btn-pending {
-  background: #F5EDE0;
-  color: #BDB5AA;
+  background: var(--ng-bg-subtle);
+  color: var(--ng-text-hint);
   cursor: default;
 }
 
 /* ---- Toast ---- */
 .toast {
-  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
-  z-index: 1000; padding: 10px 24px; border-radius: 24px;
-  font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.12); white-space: nowrap;
+  position: fixed; top: var(--ng-space-4); left: 50%; transform: translateX(-50%);
+  z-index: 1000; padding: 10px var(--ng-space-6); border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux); font-weight: var(--ng-fw-strong); box-shadow: var(--ng-shadow-float); white-space: nowrap;
 }
-.toast-success { background: #2D2A26; color: #fff; }
-.toast-error { background: #FF3B30; color: #fff; }
-.toast-fade-enter-active, .toast-fade-leave-active { transition: all 0.3s ease; }
+.toast-success { background: var(--ng-text-main); color: var(--ng-text-inverse); }
+.toast-error { background: var(--ng-risk-red); color: var(--ng-text-inverse); }
+.toast-fade-enter-active, .toast-fade-leave-active { transition: all var(--ng-dur-base) var(--ng-ease); }
 .toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
 
-/* ---- Danger Zone ---- */
+/* ---- 危险区 ---- */
 .danger-zone {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #E0D8CE;
+  margin-top: var(--ng-space-6);
+  padding-top: var(--ng-space-4);
+  border-top: 1px solid var(--ng-border-strong);
 }
 .btn-delete-case {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #FF3B30;
-  background: #fff;
-  color: #FF3B30;
-  font-size: 14px;
-  font-weight: 500;
+  padding: var(--ng-space-3);
+  border-radius: var(--ng-radius-btn);
+  border: 1px solid var(--ng-risk-red);
+  background: var(--ng-bg-card);
+  color: var(--ng-risk-red);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
+  gap: var(--ng-space-2);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+  font-family: var(--ng-font-family);
 }
 .btn-delete-case:hover:not(:disabled) {
-  background: #FFF5F5;
+  background: var(--ng-risk-red-soft);
+}
+.btn-delete-case:active:not(:disabled) {
+  transform: scale(0.98);
 }
 .btn-delete-case:disabled {
   opacity: 0.5;
@@ -725,39 +720,42 @@ onMounted(fetchCase)
 }
 
 .spinner-sm {
-  width: 14px; height: 14px; border: 2px solid rgba(255,59,48,0.3);
-  border-top-color: #FF3B30; border-radius: 50%; animation: spin 0.8s linear infinite;
+  width: 14px; height: 14px; border: 2px solid var(--ng-risk-red-soft);
+  border-top-color: var(--ng-risk-red); border-radius: 50%; animation: spin 0.8s linear infinite;
   flex-shrink: 0;
 }
-.spinner-white { border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; }
+.spinner-white { border: 2px solid var(--ng-risk-red-soft); border-top-color: var(--ng-risk-red); }
 
-/* ---- Modal ---- */
+/* ---- 删除确认弹窗 ---- */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200;
-  display: flex; align-items: center; justify-content: center; padding: 24px;
+  position: fixed; inset: 0; background: color-mix(in srgb, var(--ng-text-main) 40%, transparent); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: var(--ng-space-6);
 }
 .modal-box {
-  background: #fff; border-radius: 16px; padding: 28px 24px 20px;
-  width: 100%; max-width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  background: var(--ng-bg-card); border-radius: var(--ng-radius-card); padding: 28px var(--ng-space-6) var(--ng-space-5);
+  width: 100%; max-width: 340px; box-shadow: var(--ng-shadow-float);
+  border: 1px solid var(--ng-border);
   text-align: center;
 }
-.modal-icon { margin-bottom: 12px; }
-.modal-title { font-size: 17px; font-weight: 600; margin: 0 0 10px; }
-.modal-desc { font-size: 14px; color: #4A4540; line-height: 1.6; margin: 0 0 20px; }
+.modal-icon { margin-bottom: var(--ng-space-3); }
+.modal-title { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); margin: 0 0 10px; }
+.modal-desc { font-size: var(--ng-fs-body); color: var(--ng-text-secondary); line-height: var(--ng-lh); margin: 0 0 var(--ng-space-5); }
 .modal-actions { display: flex; gap: 10px; }
 .btn-modal-cancel {
-  flex: 1; padding: 10px; border: 1px solid #E0D8CE; border-radius: 10px;
-  background: #fff; font-size: 14px; color: #6B6560; cursor: pointer;
+  flex: 1; padding: 10px; border: 1px solid var(--ng-border-strong); border-radius: var(--ng-radius-btn);
+  background: var(--ng-bg-card); font-size: var(--ng-fs-body); color: var(--ng-text-secondary); cursor: pointer;
+  transition: background var(--ng-dur-fast) var(--ng-ease); font-family: var(--ng-font-family);
 }
-.btn-modal-cancel:hover { background: #F5F0E8; }
+.btn-modal-cancel:hover { background: var(--ng-bg-subtle); }
 .btn-modal-confirm {
-  flex: 1; padding: 10px; border: none; border-radius: 10px;
-  background: #FF3B30; color: #fff; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: background 0.2s;
+  flex: 1; padding: 10px; border: none; border-radius: var(--ng-radius-btn);
+  background: var(--ng-risk-red); color: var(--ng-text-inverse); font-size: var(--ng-fs-body); font-weight: var(--ng-fw-title);
+  cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease); font-family: var(--ng-font-family);
 }
-.btn-modal-confirm:hover:not(:disabled) { background: #E0332A; }
+.btn-modal-confirm:hover:not(:disabled) { filter: brightness(0.9); }
+.btn-modal-confirm:active:not(:disabled) { transform: scale(0.98); }
 .btn-modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.modal-fade-enter-active, .modal-fade-leave-active { transition: all 0.25s ease; }
+.modal-fade-enter-active, .modal-fade-leave-active { transition: all var(--ng-dur-base) var(--ng-ease); }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 </style>

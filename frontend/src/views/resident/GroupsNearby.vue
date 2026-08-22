@@ -1,5 +1,5 @@
 <template>
-  <div class="page">
+  <div class="page ng-fade-in">
     <header class="top-bar">
       <button @click="$router.back()" class="btn-back">&larr; 返回</button>
       <h1>社区群组</h1>
@@ -234,7 +234,7 @@ onMounted(() => {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #FFF9F0;
+  background: var(--ng-bg-mobile);
 }
 
 /* Header */
@@ -242,20 +242,22 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: var(--ng-space-4) var(--ng-page-margin-mobile);
 }
 .btn-back {
   background: none;
   border: none;
-  font-size: 14px;
-  color: #E8A33D;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-primary-deep);
   cursor: pointer;
   min-width: 60px;
+  transition: opacity var(--ng-dur-fast) var(--ng-ease);
 }
+.btn-back:hover { opacity: 0.75; }
 .top-bar h1 {
-  font-size: 17px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-page);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
 }
 .top-spacer {
   min-width: 60px;
@@ -264,33 +266,35 @@ onMounted(() => {
 /* Tabs */
 .tab-bar {
   display: flex;
-  margin: 0 20px 16px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin: 0 var(--ng-page-margin-mobile) var(--ng-space-4);
+  background: var(--ng-bg-card);
+  border: 1px solid var(--ng-border);
+  border-radius: var(--ng-radius-btn);
+  padding: var(--ng-space-1);
+  box-shadow: var(--ng-shadow-card);
 }
 .tab-btn {
   flex: 1;
   border: none;
   background: transparent;
   padding: 10px 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #6B6560;
-  border-radius: 10px;
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-secondary);
+  border-radius: var(--ng-radius-tag);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .tab-btn.active {
-  background: #E8A33D;
-  color: #fff;
-  font-weight: 600;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
+  font-weight: var(--ng-fw-title);
+  box-shadow: var(--ng-shadow-btn);
 }
 
 /* Main Content */
 .main-content {
-  padding: 0 20px 20px;
+  padding: 0 var(--ng-page-margin-mobile) var(--ng-space-5);
   min-height: 300px;
 }
 
@@ -299,16 +303,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--ng-space-2);
   padding: 60px 0;
-  color: #6B6560;
-  font-size: 14px;
+  color: var(--ng-text-secondary);
+  font-size: var(--ng-fs-body);
 }
 .spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid #E0D8CE;
-  border-top-color: #E8A33D;
+  border: 2px solid var(--ng-border-strong);
+  border-top-color: var(--ng-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -319,78 +323,80 @@ onMounted(() => {
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 48px 20px;
-  color: #9E9893;
+  padding: 48px var(--ng-space-5);
+  color: var(--ng-text-hint);
 }
 .empty-icon {
   font-size: 48px;
-  margin-bottom: 12px;
+  margin-bottom: var(--ng-space-3);
   opacity: 0.6;
 }
 .empty-state p {
-  font-size: 14px;
-  margin-bottom: 16px;
+  font-size: var(--ng-fs-body);
+  margin-bottom: var(--ng-space-4);
 }
 .btn-text {
   background: none;
   border: none;
-  color: #E8A33D;
-  font-size: 14px;
-  font-weight: 500;
+  color: var(--ng-primary-deep);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
   cursor: pointer;
+  transition: opacity var(--ng-dur-fast) var(--ng-ease);
 }
+.btn-text:hover { opacity: 0.75; }
 
 /* Group List */
 .group-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--ng-card-gap);
 }
 
 /* Group Card */
 .group-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid #E0D8CE;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-card-padding);
+  box-shadow: var(--ng-shadow-card);
+  border: 1px solid var(--ng-border);
+  transition: transform var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease);
 }
 .group-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+  transform: translateY(-2px);
+  box-shadow: var(--ng-shadow-card-hover);
 }
 .group-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--ng-space-2);
 }
 .group-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #2D2A26;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
+  color: var(--ng-text-main);
 }
 .group-meta-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ng-space-2);
 }
 .member-count {
-  font-size: 12px;
-  color: #9E9893;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-text-secondary);
 }
 .distance {
-  font-size: 11px;
-  color: #E8A33D;
-  background: rgba(232, 163, 61, 0.1);
-  padding: 2px 8px;
-  border-radius: 6px;
+  font-size: var(--ng-fs-small);
+  color: var(--ng-primary-deep);
+  background: var(--ng-primary-tint);
+  padding: 2px var(--ng-space-2);
+  border-radius: var(--ng-radius-tag);
 }
 .group-desc {
-  font-size: 13px;
-  color: #6B6560;
-  line-height: 1.5;
+  font-size: var(--ng-fs-aux);
+  color: var(--ng-text-secondary);
+  line-height: var(--ng-lh);
   margin-bottom: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -400,15 +406,15 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 12px;
+  margin-bottom: var(--ng-space-3);
 }
 .tag-chip {
-  font-size: 11px;
-  color: #E8A33D;
-  background: rgba(232, 163, 61, 0.08);
-  border: 1px solid rgba(232, 163, 61, 0.2);
+  font-size: var(--ng-fs-small);
+  color: var(--ng-primary-deep);
+  background: var(--ng-primary-soft);
+  border: 1px solid var(--ng-primary-tint);
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: var(--ng-radius-tag);
 }
 .group-footer {
   display: flex;
@@ -416,125 +422,129 @@ onMounted(() => {
 }
 .btn-enter {
   background: none;
-  border: 1.5px solid #E8A33D;
-  color: #E8A33D;
+  border: 1.5px solid var(--ng-primary);
+  color: var(--ng-primary-deep);
   padding: 7px 18px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-strong);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-enter:hover {
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-primary);
+  color: var(--ng-text-inverse);
 }
+.btn-enter:active { transform: scale(0.98); }
 .btn-join {
-  background: #E8A33D;
+  background: var(--ng-gradient-btn);
   border: none;
-  color: #fff;
-  padding: 8px 24px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--ng-text-inverse);
+  padding: var(--ng-space-2) var(--ng-space-6);
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: background 0.2s ease;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-join:hover {
-  background: #D4922E;
-}
+.btn-join:hover { background: var(--ng-primary-dark); }
+.btn-join:active { transform: scale(0.98); }
 .btn-join:disabled {
-  background: #ccc;
+  background: var(--ng-border-strong);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
 /* Create Section */
 .create-section {
-  padding: 0 20px 40px;
+  padding: 0 var(--ng-page-margin-mobile) 40px;
 }
 .btn-create-toggle {
   width: 100%;
-  background: #fff;
-  border: 1.5px dashed #E0D8CE;
-  color: #E8A33D;
+  background: var(--ng-bg-card);
+  border: 1.5px dashed var(--ng-border-strong);
+  color: var(--ng-primary-deep);
   padding: 14px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--ng-radius-btn);
+  font-size: var(--ng-fs-body);
+  font-weight: var(--ng-fw-strong);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
 .btn-create-toggle:hover {
-  border-color: #E8A33D;
-  background: rgba(232, 163, 61, 0.04);
+  border-color: var(--ng-primary);
+  background: var(--ng-bg-mobile);
 }
 
 /* Create Form */
 .create-form {
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid #E0D8CE;
+  background: var(--ng-bg-card);
+  border-radius: var(--ng-radius-card);
+  padding: var(--ng-space-5);
+  margin-top: var(--ng-space-3);
+  box-shadow: var(--ng-shadow-card);
+  border: 1px solid var(--ng-border);
 }
 .form-field {
-  margin-bottom: 16px;
+  margin-bottom: var(--ng-space-4);
 }
 .form-field label {
   display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #2D2A26;
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-strong);
+  color: var(--ng-text-main);
   margin-bottom: 6px;
 }
 .form-field input,
 .form-field textarea,
 .form-field select {
   width: 100%;
-  border: 1px solid #E0D8CE;
-  border-radius: 10px;
+  border: 1px solid var(--ng-border-strong);
+  border-radius: var(--ng-radius-input);
   padding: 10px 14px;
-  font-size: 14px;
-  color: #2D2A26;
-  background: #FFF9F0;
+  font-size: var(--ng-fs-body);
+  color: var(--ng-text-main);
+  background: var(--ng-bg-card);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease);
   font-family: inherit;
   box-sizing: border-box;
 }
 .form-field input:focus,
 .form-field textarea:focus,
 .form-field select:focus {
-  border-color: #E8A33D;
+  border-color: var(--ng-primary);
+  box-shadow: 0 0 0 3px var(--ng-primary-tint);
 }
 .form-field textarea {
   resize: vertical;
 }
 .btn-submit {
   width: 100%;
-  background: #E8A33D;
-  color: #fff;
+  background: var(--ng-gradient-btn);
+  color: var(--ng-text-inverse);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--ng-radius-btn);
   padding: 13px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--ng-fs-card);
+  font-weight: var(--ng-fw-title);
   cursor: pointer;
-  transition: background 0.2s;
+  box-shadow: var(--ng-shadow-btn);
+  transition: all var(--ng-dur-fast) var(--ng-ease);
 }
-.btn-submit:hover {
-  background: #D4922E;
-}
+.btn-submit:hover { background: var(--ng-primary-dark); }
+.btn-submit:active { transform: scale(0.98); }
 .btn-submit:disabled {
-  background: #ccc;
+  background: var(--ng-border-strong);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
 /* Slide Transition */
 .slide-enter-active,
 .slide-leave-active {
-  transition: all 0.3s ease;
+  transition: all var(--ng-dur-base) var(--ng-ease);
   overflow: hidden;
 }
 .slide-enter-from,
