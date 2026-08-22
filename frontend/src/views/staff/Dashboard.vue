@@ -13,6 +13,26 @@
     </header>
 
     <main class="main">
+      <!-- Navigation -->
+      <nav class="nav-grid">
+        <a href="/staff/tickets" class="nav-card" @click.prevent="$router.push('/staff/tickets')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><path d="M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span>案例工作台</span>
+        </a>
+        <a href="/staff/service-requests" class="nav-card" @click.prevent="$router.push('/staff/service-requests')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>服务请求</span>
+        </a>
+        <a href="/staff/items" class="nav-card" @click.prevent="$router.push('/staff/items')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          <span>物品管理</span>
+        </a>
+        <a href="/staff/trends" class="nav-card" @click.prevent="$router.push('/staff/trends')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8A33D" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>社区态势</span>
+        </a>
+      </nav>
+
       <!-- Stats Cards -->
       <section class="stats-row">
         <div class="stat-card">
@@ -352,6 +372,32 @@ onMounted(loadData)
 /* Main */
 .main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
 
+/* Nav Grid */
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.nav-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #E0D8CE;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #2D2A26;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+.nav-card:hover { border-color: #E8A33D; box-shadow: 0 2px 12px rgba(232,163,61,0.12); transform: translateY(-1px); }
+.nav-card svg { flex-shrink: 0; }
+
 /* Stats */
 .stats-row {
   display: grid;
@@ -546,5 +592,6 @@ onMounted(loadData)
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .content-grid { grid-template-columns: 1fr; }
   .ai-panel { max-width: 100%; border-radius: 12px 12px 0 0; }
+  .nav-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

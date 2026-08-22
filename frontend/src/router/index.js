@@ -16,9 +16,12 @@ const routes = [
   { path: '/resident/groups/my', name: 'MyGroups', component: () => import('../views/resident/MyGroups.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/groups/:id', name: 'GroupDetail', component: () => import('../views/resident/GroupDetail.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/groups/:id/chat', name: 'GroupChat', component: () => import('../views/resident/Chat.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
+  { path: '/resident/profile', name: 'ResidentProfile', component: () => import('../views/resident/Profile.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/staff', name: 'StaffDashboard', component: () => import('../views/staff/Dashboard.vue'), meta: { requiresAuth: true, requiresRole: 'staff' } },
   { path: '/staff/tickets', name: 'TicketList', component: () => import('../views/staff/TicketList.vue'), meta: { requiresAuth: true, requiresRole: 'staff' } },
   { path: '/staff/items', name: 'ItemManagement', component: () => import('../views/staff/ItemManagement.vue'), meta: { requiresAuth: true, requiresRole: 'staff' } },
+  { path: '/staff/service-requests', name: 'ServiceRequestList', component: () => import('../views/staff/ServiceRequests.vue'), meta: { requiresAuth: true, requiresRole: 'staff' } },
+  { path: '/staff/trends', name: 'StaffTrends', component: () => import('../views/staff/Trends.vue'), meta: { requiresAuth: true, requiresRole: 'staff' } },
 ]
 const router = createRouter({
   history: createWebHistory(),
