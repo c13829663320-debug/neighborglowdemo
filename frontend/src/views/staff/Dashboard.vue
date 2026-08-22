@@ -299,8 +299,9 @@ function sendReply() {
 }
 
 function handleLogout() {
-  // TODO: integrate with auth
-  alert('已退出（示例）')
+  localStorage.removeItem('token')
+  localStorage.removeItem('userInfo')
+  window.location.href = '/login'
 }
 
 async function loadData() {
