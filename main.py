@@ -1443,6 +1443,77 @@ def ai_chat(data: dict, current_user: User = Depends(get_current_user)):
 # ================================================================================
 # 49.5. AI: Chat-Submit (引导对话 + 意图检测 + 案例创建准备)
 # ================================================================================
+def _chat_submit_fallback(messages: list, user_input: str) -> dict:
+    """规则引擎智能兜底：根据已收集的信息给出针对性回复，避免千篇一律的模板话术。"""
+    uc = user_input or ""
+    analysis = analyze_context(uc)
+    symptoms = analysis.get("symptoms", {}) if isinstance(analysis, dict) else {}
+    category = symptoms.get("category") or classify_category(uc)
+    freq = symptoms.get("frequency") or detect_frequency(uc)
+    emotions = detect_emotions(uc)
+    _has_safety, safety = detect_safety(uc)
+    if not isinstance(safety, list):
+        safety = []
+
+    cat_labels = {"noise": "噪音", "parking": "停车", "pet": "宠物", "renovation": "装修施工",
+                  "leak": "漏水", "garbage": "卫生", "public_space": "公共区域", "wechat": "微信群"}
+    freq_labels = {"daily": "几乎每天", "weekly": "每周几次", "occasional": "偶尔发生", "once": "只发生过一次"}
+    user_turns = len([m for m in messages if m.get("role") == "user"])
+
+    # 安全风险最高优先级
+    if safety:
+        return {
+            "reply": "🚨 你描述的情况可能涉及人身安全，请优先保护好自己和家人，必要时直接拨打 110。在不冲突的前提下，先用手机记录时间、声音或现场情况作为证据。需要我帮你把这个情况建档跟进吗？",
+            "ready_to_create": user_turns >= 1,
+            "case_title": uc[:20] or "安全风险事件",
+            "case_summary": "、".join(safety[:2]),
+            "category": category if category != "other" else "other",
+            "action_suggestions": ["确保人身安全", "拨打 110 / 12345", "录音录像留证"],
+        }
+
+    info_bits = []
+    if category and category != "other":
+        info_bits.append(cat_labels.get(category, "相关"))
+    if freq and freq != "unknown":
+        info_bits.append(freq_labels.get(freq, ""))
+    enough = bool(info_bits) and len(uc) >= 12 and user_turns >= 2
+
+    if enough:
+        summary = f"{'、'.join([b for b in info_bits if b])}的邻里困扰，已影响到你的日常生活"
+        return {
+            "reply": "✅ 好的，情况我基本记下了。我帮你整理了一份案例摘要，确认无误就可以建档，之后我会给你一份 AI 诊断和行动建议 📋",
+            "ready_to_create": True,
+            "case_title": (cat_labels.get(category, "邻里") + "困扰")[:20],
+            "case_summary": summary,
+            "category": category,
+            "action_suggestions": ["确认创建案例", "补充更多细节"],
+        }
+
+    # 信息不足：针对缺失项提问，且避免与历史回复重复
+    prev_ai_texts = [m.get("content", "") for m in messages if m.get("role") == "assistant"]
+    questions = []
+    if not (category and category != "other"):
+        questions.append("具体是发生了什么事呢？比如噪音、漏水、停车还是宠物问题 🤔")
+    if not (freq and freq != "unknown"):
+        questions.append("这种情况大概持续多久了？是每天都发生，还是偶尔出现？")
+    if not emotions:
+        questions.append("这件事对你的休息或生活造成了什么影响？")
+    if not questions:
+        questions.append("你之前有没有和对方或物业沟通过？效果怎么样？")
+    q = questions[0]
+    if any(q[:10] in t for t in prev_ai_texts) and len(questions) > 1:
+        q = questions[1]
+    empathy = "谢谢你告诉我这些 🤝" if user_turns >= 2 else "收到 🤝"
+    return {
+        "reply": f"{empathy} 为了帮你把情况梳理清楚，{q}",
+        "ready_to_create": False,
+        "case_title": None,
+        "case_summary": None,
+        "category": category if category != "other" else "other",
+        "action_suggestions": ["📷 拍照留证", "📝 记录发生时间", "💬 尝试友善沟通"],
+    }
+
+
 @app.post("/api/ai/chat-submit")
 def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
     """
@@ -1457,28 +1528,9 @@ def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
     # 当前用户最新输入
     user_input = data.get("user_input", "")
 
-    # 如果 LLM 不可用，降级到规则引擎做简单意图判断
+    # 如果 LLM 不可用，降级到规则引擎做智能意图判断
     if not LLM_ENABLED:
-        category = classify_category(user_input)
-        freq = detect_frequency(user_input)
-        rel = detect_relationship(user_input)
-        emotions = detect_emotions(user_input)
-
-        # 如果检测到具体的问题关键词，认为可以创建案例
-        ready = category != "other" or len(emotions) > 0 or freq != "unknown"
-        if ready:
-            summary = f"检测到{category}相关问题"
-            reply = "已收到您的描述，正在为您创建案例..."
-        else:
-            summary = None
-            reply = "你好呀！我是邻光——邻里之光，让善意照进千万人家！能具体说说遇到了什么情况吗？比如发生了什么问题、大概什么时候、对你造成了什么影响。"
-
-        return {
-            "reply": reply,
-            "ready_to_create": ready,
-            "case_summary": summary,
-            "category": category,
-        }
+        return _chat_submit_fallback(messages, user_input)
 
     # LLM 模式：使用 LLM 分析对话意图
     system = """你是邻光社区纠纷调解平台的AI助手「邻光」。品牌口号：邻里之光，让善意照进千万人家！你的任务是引导居民描述他们遇到的邻里纠纷问题，并在收集到足够信息后准备创建案例。
@@ -1500,16 +1552,22 @@ def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
 - 如果用户描述了问题但信息不完整 → stage="collecting"
 - 如果用户提供了足够的问题描述（至少包含问题类型和影响）→ stage="ready"
 
-输出格式（只返回JSON）：
+输出格式（只返回JSON，不要任何多余文字）：
 {
   "stage": "greeting" | "collecting" | "ready",
   "reply": "你对用户的回复内容（温暖、专业、引导性）",
-  "case_title": "如果stage是ready，生成一个简短的案例标题（15字以内）",
-  "case_summary": "如果stage是ready，生成案例摘要（30字以内）",
-  "category": "推测的问题分类（noise/parking/pet/renovation/leak/garbage/public_space/wechat/other）"
+  "case_title": "如果stage是ready，生成一个简短的案例标题（15字以内），否则为null",
+  "case_summary": "如果stage是ready，生成案例摘要（30字以内），否则为null",
+  "category": "推测的问题分类（noise/parking/pet/renovation/leak/garbage/public_space/wechat/other）",
+  "action_suggestions": ["给用户的1-3条行动建议（每条10字以内，可含1个表情）"]
 }
 
-回复风格：温暖、专业、善于倾听。用「你」称呼用户，不要说教。"""
+回复风格要求：
+1. 温暖、专业、善于倾听，用「你」称呼用户，不要说教
+2. 回复中自然地使用1-2个表情符号（如 😊🤝💡✅），让对话更亲切，但不要堆砌
+3. 每一轮回复必须有实质内容：先共情确认用户说的具体细节，再提出一个最关键的追问，禁止重复之前说过的话
+4. 如果用户的内容涉及敏感或隐私话题（如私密噪音），保持中立专业，聚焦于「声音干扰生活」这一事实层面，给出可操作的记录与沟通建议
+5. action_suggestions 给出当前阶段用户立刻可以做的小事（如：记录发生时间、手机录音留证、先友善沟通一次、联系物业）"""
 
     full_messages = [{"role": "system", "content": system}]
     for msg in messages[-15:]:
@@ -1518,29 +1576,43 @@ def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
     try:
         result_text = llm_chat_messages(full_messages, temperature=0.7, max_tokens=1000)
         import json as _json
+        import re as _re
         clean = result_text.strip()
+        # 去掉 markdown 代码围栏
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[-1] if "\n" in clean else clean[3:]
         if clean.endswith("```"):
             clean = clean[:-3]
         clean = clean.strip()
-        result = _json.loads(clean)
+        # 容错：从文本中提取第一个 JSON 对象（防止 LLM 输出多余前后缀）
+        try:
+            result = _json.loads(clean)
+        except _json.JSONDecodeError:
+            m = _re.search(r"\{[\s\S]*\}", clean)
+            if not m:
+                raise ValueError("LLM 输出中未找到 JSON")
+            result = _json.loads(m.group(0))
 
+        reply = result.get("reply") or ""
+        if not reply:
+            raise ValueError("LLM 输出缺少 reply 字段")
+        suggestions = result.get("action_suggestions") or []
+        if not isinstance(suggestions, list):
+            suggestions = []
         return {
-            "reply": result.get("reply", ""),
+            "reply": reply,
             "ready_to_create": result.get("stage") == "ready",
             "case_title": result.get("case_title"),
             "case_summary": result.get("case_summary"),
             "category": result.get("category", "other"),
+            "action_suggestions": suggestions[:3],
         }
     except Exception as e:
         import traceback
         traceback.print_exc()
-        # 降级：直接回复
-        return {
-            "reply": "我理解你的感受。能否再多描述一下具体的情况？比如什么时候发生的、对你造成了什么影响？",
-            "ready_to_create": False,
-        }
+        print(f"[AI] chat-submit LLM failed, using smart fallback: {e}")
+        # 降级：规则引擎智能兜底（针对性回复 + 表情 + 行动建议）
+        return _chat_submit_fallback(messages, user_input)
 
 
 # ================================================================================

@@ -7,10 +7,21 @@
     </header>
     <main class="main-content">
       <div class="chat-area" ref="chatArea">
-        <div v-for="(msg, i) in messages" :key="i" :class="['chat-bubble', msg.role]">
-          <div v-if="msg.role === 'ai' && msg.html" v-html="msg.html"></div>
-          <span v-else>{{ msg.text }}</span>
-        </div>
+        <template v-for="(msg, i) in messages" :key="i">
+          <div :class="['chat-bubble', msg.role]">
+            <img v-if="msg.image" :src="msg.image" class="bubble-img" />
+            <div v-if="msg.role === 'ai' && msg.html" v-html="msg.html"></div>
+            <span v-else class="bubble-text">{{ msg.text }}</span>
+          </div>
+          <!-- 行动建议（快捷操作） -->
+          <div v-if="msg.role === 'ai' && msg.suggestions && msg.suggestions.length" class="suggestion-row">
+            <span
+              v-for="(s, si) in msg.suggestions" :key="si"
+              class="suggestion-chip"
+              @click="useSuggestion(s)"
+            >{{ s }}</span>
+          </div>
+        </template>
         <div v-if="loading" class="chat-bubble ai">
           <span class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
         </div>
@@ -72,6 +83,7 @@
             {{ isRecording ? '录音中...' : '语音输入' }}
           </button>
         </div>
+        <div v-if="voiceHint" class="voice-hint">{{ voiceHint }}</div>
 
         <div class="image-upload-section">
           <div class="section-label">证据照片（可选）</div>
@@ -90,7 +102,7 @@
           </label>
         </div>
 
-        <button @click="submit" :disabled="!input.trim() || loading" class="ng-btn ng-btn-primary btn-send">发送</button>
+        <button @click="submit" :disabled="(!input.trim() && !imageFile) || loading" class="ng-btn ng-btn-primary btn-send">发送</button>
       </div>
     </main>
   </div>
@@ -113,9 +125,21 @@ const chatArea = ref(null)
 // 对话历史（用于 LLM 多轮对话）
 const conversationHistory = ref([])
 
-// Voice input
+// Voice input（PRD 5.4：语音不可用时优雅降级，不阻断流程）
 const isRecording = ref(false)
+const voiceHint = ref('')
 let recognition = null
+let voiceHintTimer = null
+
+function showVoiceHint(text) {
+  voiceHint.value = text
+  if (voiceHintTimer) clearTimeout(voiceHintTimer)
+  voiceHintTimer = setTimeout(() => { voiceHint.value = '' }, 5000)
+}
+
+function speechSupported() {
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition)
+}
 
 function initSpeechRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -132,15 +156,38 @@ function initSpeechRecognition() {
     input.value = transcript
   }
   recognition.onend = () => { isRecording.value = false }
-  recognition.onerror = () => { isRecording.value = false }
+  recognition.onerror = (event) => {
+    isRecording.value = false
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      showVoiceHint('麦克风权限未开启，请在浏览器设置中允许访问麦克风后重试 🎤')
+    } else if (event.error === 'network') {
+      showVoiceHint('语音识别需要联网，当前网络不可用，请直接输入文字 ✍️')
+    } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+      showVoiceHint('语音识别暂时不可用，请直接输入文字 ✍️')
+    }
+  }
   return recognition
 }
 
 function toggleVoice() {
+  if (!speechSupported()) {
+    showVoiceHint('当前浏览器不支持语音输入，建议使用 Chrome/Edge，或直接打字描述 😊')
+    return
+  }
   if (!recognition) recognition = initSpeechRecognition()
-  if (!recognition) { alert('当前浏览器不支持语音识别'); return }
-  if (isRecording.value) { recognition.stop() }
-  else { recognition.start(); isRecording.value = true }
+  if (!recognition) return
+  try {
+    if (isRecording.value) {
+      recognition.stop()
+    } else {
+      recognition.start()
+      isRecording.value = true
+      showVoiceHint('正在聆听，请开始描述…再次点击可结束 🎤')
+    }
+  } catch (err) {
+    isRecording.value = false
+    showVoiceHint('语音识别启动失败，请直接输入文字 ✍️')
+  }
 }
 
 // Image upload
@@ -209,17 +256,38 @@ function scrollToBottom() {
   })
 }
 
-// 核心：发送消息 → AI 引导对话，不立即创建案例
+// 点击行动建议：去掉表情前缀填入输入框，方便用户确认或补充后发送
+function useSuggestion(s) {
+  const clean = String(s).replace(/^[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\s]+/u, '').trim()
+  if (clean) {
+    input.value = clean
+  }
+}
+
+// 核心：发送消息（支持纯文字 / 文字+照片 / 纯照片）→ AI 引导对话，不立即创建案例
 async function submit() {
-  if (!input.value.trim() || loading.value) return
+  const hasText = input.value.trim().length > 0
+  const hasImage = !!imageFile.value
+  if ((!hasText && !hasImage) || loading.value) return
+
   const text = input.value.trim()
   input.value = ''
   loading.value = true
 
-  // 显示用户消息
-  messages.value.push({ role: 'user', text })
-  conversationHistory.value.push({ role: 'user', content: text })
+  // 显示用户消息（含照片气泡）
+  const userBubble = { role: 'user', text: text || '发送了一张证据照片' }
+  if (hasImage) userBubble.image = imagePreview.value
+  messages.value.push(userBubble)
+  conversationHistory.value.push({ role: 'user', content: text || '（发送了一张证据照片）' })
   scrollToBottom()
+
+  // 照片先行确认：保留文件，待案例创建后随案分析
+  if (hasImage) {
+    messages.value.push({ role: 'ai', text: '照片已收到 📷 我会先保存好，建档后会立即分析照片里的证据信息。' })
+    conversationHistory.value.push({ role: 'assistant', content: '照片已收到，建档后会一并分析。' })
+    scrollToBottom()
+    if (!hasText) { loading.value = false; return }
+  }
 
   try {
     // 调用 AI 引导对话端点
@@ -233,11 +301,11 @@ async function submit() {
 
     messages.value.pop() // 移除"正在分析"
 
-    const { reply, ready_to_create, case_title, case_summary, category } = res.data
+    const { reply, ready_to_create, case_title, case_summary, category, action_suggestions } = res.data
 
     if (ready_to_create) {
       // AI 认为信息足够，显示确认卡片
-      messages.value.push({ role: 'ai', text: reply })
+      messages.value.push({ role: 'ai', text: reply, suggestions: action_suggestions || [] })
       casePending.value = {
         summary: case_summary || reply,
         title: case_title || text.slice(0, 30),
@@ -246,12 +314,12 @@ async function submit() {
       scrollToBottom()
     } else {
       // 继续引导对话
-      messages.value.push({ role: 'ai', text: reply })
+      messages.value.push({ role: 'ai', text: reply, suggestions: action_suggestions || [] })
       conversationHistory.value.push({ role: 'assistant', content: reply })
       scrollToBottom()
     }
   } catch (e) {
-    messages.value.push({ role: 'ai', text: '抱歉，分析时遇到了问题，请稍后重试。' })
+    messages.value.push({ role: 'ai', text: '抱歉，分析时遇到了问题，请稍后重试 🙏' })
     scrollToBottom()
   } finally {
     loading.value = false
@@ -276,18 +344,26 @@ async function confirmCreate() {
       category: casePending.value.category,
     })
 
-    // 图片分析（如果有）
-    if (imageFile.value) {
-      const base64 = await getImageBase64()
-      try {
-        await api.post(`/cases/${res.data.id}/analyze-image`, { image: base64, text: userMessages })
-      } catch (e) {
-        console.error('图片分析失败', e)
-      }
-    }
-
     casePending.value = null
     createdCase.value = res.data
+
+    // 图片分析（如果有）：结果以对话气泡形式反馈
+    if (imageFile.value) {
+      try {
+        const base64 = await getImageBase64()
+        const imgRes = await api.post(`/cases/${res.data.id}/analyze-image`, { image: base64, text: userMessages })
+        const a = imgRes.data && imgRes.data.analysis
+        if (a && typeof a === 'object' && a.image_description) {
+          const facts = (a.image_facts || []).slice(0, 2).map(f => `· ${f}`).join('\n')
+          messages.value.push({ role: 'ai', text: `📷 照片分析完成：${a.image_description}${facts ? '\n' + facts : ''}` })
+        } else if (typeof a === 'string' && a) {
+          messages.value.push({ role: 'ai', text: `📷 照片分析完成：${a}` })
+        }
+        imageAnalysis.value = a
+      } catch (e) {
+        messages.value.push({ role: 'ai', text: '照片暂时没能分析成功，但不影响案例创建，照片已随案例保存 📷' })
+      }
+    }
 
     // 触发诊断
     try {
@@ -298,7 +374,8 @@ async function confirmCreate() {
 
     scrollToBottom()
   } catch (e) {
-    messages.value.push({ role: 'ai', text: '抱歉，创建案例时遇到了问题，请稍后重试。' })
+    const detail = e.response && e.response.data && e.response.data.detail
+    messages.value.push({ role: 'ai', text: `抱歉，创建案例时遇到了问题${detail ? '：' + detail : ''}，请稍后重试 🙏` })
     scrollToBottom()
   } finally {
     loading.value = false
@@ -413,4 +490,26 @@ function categoryLabel(cat) {
   cursor: pointer; transition: all var(--ng-dur-fast) var(--ng-ease); color: var(--ng-text-hint); font-size: var(--ng-fs-body);
 }
 .upload-trigger:hover { border-color: var(--ng-primary); color: var(--ng-primary-deep); }
+
+/* ---- 气泡内图片 / 多行文本 ---- */
+.bubble-img { display: block; max-width: 180px; max-height: 140px; border-radius: var(--ng-radius-btn); margin-bottom: var(--ng-space-2); object-fit: cover; }
+.bubble-text { white-space: pre-line; }
+
+/* ---- 行动建议（快捷操作标签） ---- */
+.suggestion-row { display: flex; flex-wrap: wrap; gap: var(--ng-space-2); margin: calc(var(--ng-space-2) * -1) 0 var(--ng-card-gap); }
+.suggestion-chip {
+  padding: 6px 12px; border-radius: var(--ng-radius-pill);
+  background: var(--ng-primary-soft, #F5EFE4); border: 1px solid var(--ng-primary);
+  color: var(--ng-primary-deep); font-size: var(--ng-fs-aux); cursor: pointer;
+  transition: all var(--ng-dur-fast) var(--ng-ease); animation: bubble-in var(--ng-dur-base) var(--ng-ease) both;
+}
+.suggestion-chip:hover { background: var(--ng-primary); color: var(--ng-text-inverse); }
+
+/* ---- 语音输入提示 ---- */
+.voice-hint {
+  margin-top: var(--ng-space-2); padding: var(--ng-space-2) var(--ng-space-3);
+  border-radius: var(--ng-radius-tag); background: var(--ng-primary-soft, #F5EFE4);
+  color: var(--ng-primary-deep); font-size: var(--ng-fs-aux); line-height: var(--ng-lh);
+  animation: bubble-in var(--ng-dur-base) var(--ng-ease) both;
+}
 </style>

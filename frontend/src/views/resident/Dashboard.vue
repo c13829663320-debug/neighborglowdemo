@@ -9,43 +9,43 @@
     </header>
     <main class="main-content">
       <section class="hero ng-card--hero">
-        <p class="hero-slogan">邻里之光，让善意照进千万人家！</p>
-        <h2>邻里之间，有些话只是需要换一种方式说。</h2>
-        <p>描述你遇到的问题，邻光会帮你理清情况、找到合适的表达，并陪你练习下一次沟通。</p>
-        <button @click="$router.push('/resident/submit')" class="ng-btn ng-btn-primary ng-btn-block">开始梳理问题</button>
+        <p class="hero-brand">
+          <span class="hero-brand-name">邻光</span>
+          <span class="hero-brand-sep">｜</span>
+          <span>邻里之光，让善意照进千万人家</span>
+        </p>
+        <h2>说说你的烦心事，<br />我来帮你理理头绪</h2>
+        <p class="hero-sub">智能分析 · 专业引导 · 隐私保护</p>
+        <button @click="router.push('/resident/submit')" class="hero-cta">
+          <span class="hero-cta-icon">✨</span>
+          <span>开始梳理问题</span>
+        </button>
+      </section>
+      <section class="entry-cards">
+        <div class="entry-card ng-card" @click="router.push('/resident/groups')">
+          <span class="entry-icon entry-icon--chat">💬</span>
+          <div class="entry-text">
+            <p class="entry-title">社区支持群聊</p>
+            <p class="entry-desc">和邻居们一起聊聊</p>
+          </div>
+          <svg class="entry-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="entry-card ng-card" @click="router.push('/resident/my-requests')">
+          <span class="entry-icon entry-icon--case">📋</span>
+          <div class="entry-text">
+            <p class="entry-title">待跟进的案例</p>
+            <p class="entry-desc">查看案例进展与反馈</p>
+          </div>
+          <span v-if="pendingCount > 0" class="entry-badge">{{ pendingCount }}</span>
+          <svg class="entry-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
       </section>
       <section class="quick-scenarios">
-        <h3 class="ng-section-title">快捷场景</h3>
+        <h3 class="ng-section-title">常见情况</h3>
         <div class="scenario-grid">
           <div v-for="s in scenarios" :key="s.key" class="scenario-card" @click="selectScenario(s)">
             <span class="scenario-icon">{{ s.icon }}</span>
             <span class="scenario-label">{{ s.label }}</span>
-          </div>
-        </div>
-      </section>
-      <section class="my-cases">
-        <div class="section-header">
-          <h3 class="ng-section-title">我的案例</h3>
-          <a class="link-more" @click.prevent="router.push('/resident/my-requests')">查看全部</a>
-        </div>
-        <div v-if="cases.length === 0" class="empty-state ng-empty">
-          <div class="empty-icon ng-empty-icon">🌱</div>
-          <p class="empty-title ng-empty-title">第一次使用？</p>
-          <p class="empty-text ng-empty-desc">从描述你遇到的问题开始，<br />邻光会帮你理清情况，一起想办法怎么开口。</p>
-          <button class="ng-btn ng-btn-primary ng-btn-block empty-btn" @click="router.push('/resident/submit')">开始描述问题</button>
-          <p class="empty-tip">也可以点击上方常见场景快速开始</p>
-        </div>
-        <div v-else class="case-list">
-          <div v-for="c in cases.slice(0, 3)" :key="c.id" class="case-card clickable ng-card" :class="'risk-' + c.risk_level" @click="router.push('/resident/case/' + c.id)">
-            <div class="case-header">
-              <span class="ng-risk-badge" :class="'ng-risk-soft-' + c.risk_level"></span>
-              <span class="case-title">{{ c.title }}</span>
-            </div>
-            <p class="case-desc">{{ c.description?.slice(0, 60) }}...</p>
-            <div class="case-meta">
-              <span class="case-status">{{ statusLabel(c.status) }}</span>
-              <span class="case-date">{{ new Date(c.created_at).toLocaleDateString() }}</span>
-            </div>
           </div>
         </div>
       </section>
@@ -93,10 +93,9 @@ const avatarLetter = computed(() => {
   return name.charAt(0).toUpperCase()
 })
 
-function statusLabel(s) {
-  const map = { pending: '待处理', diagnosed: '已诊断', mediating: '调解中', escalated: '已升级', resolved: '已解决', closed: '已关闭' }
-  return map[s] || s || ''
-}
+const pendingCount = computed(() =>
+  cases.value.filter((c) => ['pending', 'diagnosed', 'mediating', 'escalated'].includes(c.status)).length
+)
 
 onMounted(async () => {
   try {
@@ -125,11 +124,30 @@ function selectScenario(s) {
 
 .main-content { padding: 0 var(--ng-page-margin-mobile) 100px; }
 
-/* ---- 主视觉卡：琥珀渐变 + 深琥珀文字 ---- */
-.hero { border-radius: var(--ng-radius-card); padding: var(--ng-space-6); margin: var(--ng-space-4) 0 var(--ng-space-6); }
-.hero-slogan { font-size: var(--ng-fs-aux); font-weight: var(--ng-fw-title); letter-spacing: 0.08em; color: var(--ng-primary-deep); opacity: 0.85; margin-bottom: var(--ng-space-2); }
-.hero h2 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); margin-bottom: var(--ng-space-3); line-height: 1.4; }
-.hero p { font-size: var(--ng-fs-body); color: var(--ng-primary-deep); margin-bottom: var(--ng-space-5); line-height: 1.6; }
+/* ---- 主视觉卡：品牌行 + 大标题 + 副标题 + 渐变主按钮 ---- */
+.hero { border-radius: var(--ng-radius-card); padding: var(--ng-space-6); margin: var(--ng-space-4) 0 var(--ng-space-5); text-align: center; }
+.hero-brand { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--ng-space-1); font-size: var(--ng-fs-small); letter-spacing: 0.06em; color: var(--ng-primary-deep); opacity: 0.9; margin-bottom: var(--ng-space-4); }
+.hero-brand-name { font-weight: var(--ng-fw-title); font-size: var(--ng-fs-aux); }
+.hero-brand-sep { opacity: 0.5; }
+.hero h2 { font-size: var(--ng-fs-page); font-weight: var(--ng-fw-title); color: var(--ng-primary-deep); margin-bottom: var(--ng-space-2); line-height: 1.4; }
+.hero-sub { font-size: var(--ng-fs-aux); color: var(--ng-primary-deep); opacity: 0.75; letter-spacing: 0.08em; margin-bottom: var(--ng-space-5); }
+.hero-cta { display: inline-flex; align-items: center; justify-content: center; gap: var(--ng-space-2); width: 100%; padding: var(--ng-space-3) var(--ng-space-5); min-height: 48px; border: none; border-radius: var(--ng-radius-btn); background: var(--ng-gradient-btn); color: var(--ng-text-inverse); font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); font-family: inherit; letter-spacing: 0.1em; cursor: pointer; box-shadow: var(--ng-shadow-btn); transition: transform var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease), filter var(--ng-dur-fast) var(--ng-ease); }
+.hero-cta:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.hero-cta:active { transform: translateY(0); }
+.hero-cta-icon { font-size: var(--ng-fs-card); line-height: 1; }
+
+/* ---- 次级入口卡：群聊 / 待跟进案例 ---- */
+.entry-cards { display: flex; flex-direction: column; gap: var(--ng-card-gap); margin-bottom: var(--ng-space-6); }
+.entry-card { display: flex; align-items: center; gap: var(--ng-space-3); padding: var(--ng-space-4); cursor: pointer; transition: transform var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease), border-color var(--ng-dur-fast) var(--ng-ease); }
+.entry-card:hover { transform: translateY(-2px); box-shadow: var(--ng-shadow-card-hover); border-color: var(--ng-primary); }
+.entry-icon { width: 44px; height: 44px; flex: none; border-radius: var(--ng-radius-btn); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.entry-icon--chat { background: var(--ng-primary-soft); }
+.entry-icon--case { background: var(--ng-primary-soft); }
+.entry-text { flex: 1; min-width: 0; }
+.entry-title { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-strong); color: var(--ng-text-main); margin: 0 0 2px; }
+.entry-desc { font-size: var(--ng-fs-aux); color: var(--ng-text-hint); margin: 0; }
+.entry-badge { flex: none; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--ng-radius-pill); background: var(--ng-gradient-btn); color: var(--ng-text-inverse); font-size: var(--ng-fs-small); font-weight: var(--ng-fw-title); display: inline-flex; align-items: center; justify-content: center; }
+.entry-arrow { flex: none; color: var(--ng-text-hint); }
 
 /* ---- 快捷场景 ---- */
 .quick-scenarios { margin-bottom: var(--ng-space-6); }
@@ -138,31 +156,6 @@ function selectScenario(s) {
 .scenario-card:hover { transform: translateY(-2px); border-color: var(--ng-primary); box-shadow: var(--ng-shadow-card-hover); }
 .scenario-icon { font-size: 24px; display: block; margin-bottom: var(--ng-space-1); }
 .scenario-label { font-size: var(--ng-fs-aux); color: var(--ng-text-main); }
-
-/* ---- 我的案例 ---- */
-.my-cases { margin-bottom: var(--ng-space-6); }
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--ng-space-3); }
-.section-header h3 { margin: 0; }
-.link-more { font-size: var(--ng-fs-aux); color: var(--ng-primary-deep); font-weight: var(--ng-fw-strong); cursor: pointer; text-decoration: none; transition: color var(--ng-dur-fast) var(--ng-ease); }
-.link-more:hover { color: var(--ng-primary); text-decoration: underline; }
-
-/* ---- 空状态（套用 .ng-empty 系列） ---- */
-.empty-state { background: var(--ng-bg-card); border-radius: var(--ng-radius-card); border: 1px dashed var(--ng-border-strong); }
-.empty-btn { max-width: 260px; margin: 0 auto; }
-.empty-tip { font-size: var(--ng-fs-small); color: var(--ng-text-hint); margin: var(--ng-space-2) 0 0; }
-
-/* ---- 案例卡片列表 ---- */
-.case-list { display: flex; flex-direction: column; gap: var(--ng-card-gap); }
-.case-card { cursor: pointer; border-left: 4px solid var(--ng-risk-green); transition: transform var(--ng-dur-fast) var(--ng-ease), box-shadow var(--ng-dur-fast) var(--ng-ease), border-color var(--ng-dur-fast) var(--ng-ease); }
-.case-card:hover { transform: translateY(-2px); box-shadow: var(--ng-shadow-card-hover); }
-.case-card.risk-yellow { border-left-color: var(--ng-risk-yellow); }
-.case-card.risk-orange { border-left-color: var(--ng-risk-orange); }
-.case-card.risk-red { border-left-color: var(--ng-risk-red); }
-.case-header { display: flex; align-items: center; gap: var(--ng-space-2); margin-bottom: var(--ng-space-2); }
-.case-title { font-size: var(--ng-fs-card); font-weight: var(--ng-fw-title); color: var(--ng-text-main); }
-.case-desc { font-size: var(--ng-fs-aux); color: var(--ng-text-secondary); margin-bottom: var(--ng-space-2); line-height: 1.5; }
-.case-meta { display: flex; justify-content: space-between; font-size: var(--ng-fs-small); color: var(--ng-text-hint); }
-.case-status { font-weight: var(--ng-fw-strong); color: var(--ng-text-secondary); }
 
 /* ---- 底部导航 ---- */
 .bottom-nav {
