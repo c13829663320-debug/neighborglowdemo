@@ -128,7 +128,7 @@
                     <span class="dd-icon">&#x1f91d;</span> 接手处理
                   </button>
                   <button class="dropdown-item dd-yellow" @click.stop="doEscalate(c, 'yellow')">
-                    <span class="dd-dot" style="background:#FF9500"></span> 升级到黄色
+                    <span class="dd-dot ng-risk-yellow"></span> 升级到黄色
                   </button>
                   <button class="dropdown-item dd-orange" @click.stop="doEscalate(c, 'orange')">
                     <span class="dd-dot ng-risk-orange"></span> 升级到橙色

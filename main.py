@@ -1413,7 +1413,11 @@ async def websocket_endpoint(websocket: WebSocket, group_id: str, token: str = Q
 def ai_chat(data: dict, current_user: User = Depends(get_current_user)):
     """通用 AI 对话接口（支持多轮对话）"""
     if not LLM_ENABLED:
-        raise HTTPException(400, "AI 功能未启用，请配置 AI_API_KEY")
+        # 降级：无 LLM 密钥时返回友好提示而非报错
+        return {
+            "reply": "AI 助手暂时不在线（未配置 AI_API_KEY），您可以先提交问题描述，我们会安排人工跟进。",
+            "model": None,
+        }
 
     messages = data.get("messages", [])
     system_prompt = data.get("system", "你是邻光社区纠纷调解平台的AI助手，专业、温暖、善于倾听。")
@@ -1464,11 +1468,13 @@ def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
         ready = category != "other" or len(emotions) > 0 or freq != "unknown"
         if ready:
             summary = f"检测到{category}相关问题"
+            reply = "已收到您的描述，正在为您创建案例..."
         else:
             summary = None
+            reply = "你好呀！我是邻光。能具体说说遇到了什么情况吗？比如发生了什么问题、大概什么时候、对你造成了什么影响。"
 
         return {
-            "reply": "已收到您的描述，正在为您创建案例...",
+            "reply": reply,
             "ready_to_create": ready,
             "case_summary": summary,
             "category": category,

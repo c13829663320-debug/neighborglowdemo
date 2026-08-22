@@ -14,9 +14,9 @@ import DegradeBanner from './components/DegradeBanner.vue'
   box-sizing: border-box;
 }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-  background: #FFF9F0;
+  font-family: var(--ng-font-family);
+  background: var(--ng-bg-mobile);
   min-height: 100vh;
-  color: #2D2A26;
+  color: var(--ng-text-main);
 }
 </style>

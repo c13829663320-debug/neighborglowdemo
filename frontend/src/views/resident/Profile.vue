@@ -111,7 +111,7 @@
               :style="{ width: seg.pct + '%', background: seg.color }"
             ></div>
           </div>
-          <div class="risk-bar" v-else style="background:#F0EBE3">
+          <div class="risk-bar" v-else style="background: var(--ng-bg-subtle)">
             <div class="risk-empty-text">暂无案例数据</div>
           </div>
           <div class="risk-legend">
