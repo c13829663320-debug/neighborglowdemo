@@ -60,6 +60,16 @@ export const groups = {
   sendMessage: (id, data) => api.post(`/groups/${id}/chat/messages`, data),
   audit: (id) => api.get(`/groups/${id}/audit`),
 }
+export const items = {
+  list: () => api.get('/items'),
+  create: (data) => api.post('/items', data),
+  remove: (id) => api.delete(`/items/${id}`),
+}
+export const serviceRequests = {
+  list: (params) => api.get('/service-requests', { params }),
+  handle: (id) => api.put(`/service-requests/${id}/handle`),
+  complete: (id) => api.put(`/service-requests/${id}/complete`),
+}
 export const agents = {
   list: () => api.get('/agents'),
   trigger: (data) => api.post('/agent/trigger', data),
