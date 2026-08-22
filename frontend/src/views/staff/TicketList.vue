@@ -139,6 +139,10 @@
                   <button class="dropdown-item dd-resolve" @click.stop="doResolve(c)">
                     <span class="dd-icon">&#x2705;</span> 标记解决
                   </button>
+                  <div class="dropdown-divider"></div>
+                  <button class="dropdown-item dd-delete" @click.stop="confirmDelete(c)">
+                    <span class="dd-icon">&#x1f5d1;</span> 删除案例
+                  </button>
                 </div>
               </transition>
             </div>
@@ -241,6 +245,11 @@
                   @click="doResolve(c)"
                   v-if="c.status !== 'resolved'"
                 >标记解决</button>
+                <button
+                  class="btn-action btn-delete"
+                  :disabled="actionLoading"
+                  @click="confirmDelete(c)"
+                >删除案例</button>
               </div>
 
               <!-- AI Reply Assistant -->
@@ -304,6 +313,23 @@
 
     <!-- Click-away overlay for quick actions -->
     <div v-if="quickActionId" class="clickaway" @click="quickActionId = null"></div>
+
+    <!-- Delete Confirm Modal -->
+    <transition name="modal-fade">
+      <div v-if="deleteModal.show" class="modal-overlay" @click.self="deleteModal.show = false">
+        <div class="modal-box">
+          <div class="modal-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3 class="modal-title">确认删除</h3>
+          <p class="modal-desc">确定删除案例「<strong>{{ deleteModal.item?.title }}</strong>」？删除后所有诊断、方案和跟进记录将无法恢复。</p>
+          <div class="modal-actions">
+            <button class="btn-modal-cancel" @click="deleteModal.show = false">取消</button>
+            <button class="btn-modal-confirm" :disabled="actionLoading" @click="doDelete">确认删除</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -325,6 +351,7 @@ const aiPrompt = ref('')
 const aiReply = ref('')
 const aiLoading = ref(false)
 const copied = ref(false)
+const deleteModal = ref({ show: false, item: null })
 
 const escalateModal = ref({ show: false, caseId: null, level: '' })
 
@@ -336,6 +363,31 @@ function showToast(msg, type = 'success') {
   toast.value = { show: true, msg, type }
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => { toast.value.show = false }, 3000)
+}
+
+function confirmDelete(c) {
+  quickActionId.value = null
+  deleteModal.value = { show: true, item: c }
+}
+
+async function doDelete() {
+  const c = deleteModal.value.item
+  if (!c) return
+  deleteModal.value.show = false
+  actionLoading.value = true
+  try {
+    await casesApi.remove(c.id)
+    cases.value = cases.value.filter(i => i.id !== c.id)
+    showToast(`案例 #${c.id} 已删除`)
+    if (expandedId.value === c.id) {
+      expandedId.value = null
+      detailData.value = null
+    }
+  } catch {
+    showToast('删除失败，请重试', 'error')
+  } finally {
+    actionLoading.value = false
+  }
 }
 
 function relativeTime(dateStr) {
@@ -1024,6 +1076,13 @@ onBeforeUnmount(() => {
   margin: 0 4px;
 }
 .dd-red { color: #FF3B30; }
+.dd-delete { color: #FF3B30; }
+
+.dropdown-divider {
+  height: 1px;
+  background: #E0D8CE;
+  margin: 4px 0;
+}
 
 .dropdown-enter-active, .dropdown-leave-active { transition: all 0.2s ease; }
 .dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(8px); }
@@ -1170,10 +1229,41 @@ onBeforeUnmount(() => {
 .btn-escalate:hover:not(:disabled) { background: #FFF5F0; }
 .btn-resolve { background: #fff; color: #34C759; border-color: #34C759; }
 .btn-resolve:hover:not(:disabled) { background: #F0FFF4; }
+.btn-delete { background: #fff; color: #FF3B30; border-color: #FF3B30; }
+.btn-delete:hover:not(:disabled) { background: #FFF5F5; }
 
 .detail-slide-enter-active, .detail-slide-leave-active { transition: all 0.3s ease; }
 .detail-slide-enter-from, .detail-slide-leave-to { opacity: 0; max-height: 0; overflow: hidden; }
 .detail-slide-enter-to, .detail-slide-leave-from { opacity: 1; max-height: 2000px; overflow: hidden; }
+
+/* =================== Delete Modal =================== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.modal-box {
+  background: #fff; border-radius: 16px; padding: 28px 24px 20px;
+  width: 100%; max-width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  text-align: center;
+}
+.modal-icon { margin-bottom: 12px; }
+.modal-title { font-size: 17px; font-weight: 600; margin: 0 0 10px; }
+.modal-desc { font-size: 14px; color: #4A4540; line-height: 1.6; margin: 0 0 20px; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-modal-cancel {
+  flex: 1; padding: 10px; border: 1px solid #E0D8CE; border-radius: 10px;
+  background: #fff; font-size: 14px; color: #6B6560; cursor: pointer;
+}
+.btn-modal-cancel:hover { background: #F5F0E8; }
+.btn-modal-confirm {
+  flex: 1; padding: 10px; border: none; border-radius: 10px;
+  background: #FF3B30; color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.2s;
+}
+.btn-modal-confirm:hover:not(:disabled) { background: #E0332A; }
+.btn-modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+.modal-fade-enter-active, .modal-fade-leave-active { transition: all 0.25s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 
 /* =================== AI Section =================== */
 .ai-section {
