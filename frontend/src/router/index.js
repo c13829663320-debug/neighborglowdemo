@@ -11,6 +11,7 @@ const routes = [
   { path: '/resident/case/:id/plan', name: 'ActionPlan', component: () => import('../views/resident/ActionPlan.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/case/:id/messages', name: 'MessageGeneration', component: () => import('../views/resident/MessageGeneration.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/case/:id/simulation', name: 'SimulationTraining', component: () => import('../views/resident/SimulationTraining.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
+  { path: '/resident/case/:id/followup', name: 'FollowUp', component: () => import('../views/resident/FollowUp.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/groups', name: 'GroupsNearby', component: () => import('../views/resident/GroupsNearby.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/groups/my', name: 'MyGroups', component: () => import('../views/resident/MyGroups.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
   { path: '/resident/groups/:id', name: 'GroupDetail', component: () => import('../views/resident/GroupDetail.vue'), meta: { requiresAuth: true, requiresRole: 'resident' } },
