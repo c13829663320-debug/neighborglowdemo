@@ -910,6 +910,136 @@ def start_simulation(case_id: int, body: SimulationCreate, db: Session = Depends
 # ================================================================================
 # 27. Cases: Send Simulation Message
 # ================================================================================
+# ============================================================
+# 模拟训练 LLM 教练：逐轮评估 + 会话结算（失败自动降级规则引擎）
+# ============================================================
+_SIM_STYLE_DESC = {
+    "friendly": "态度温和、愿意沟通的友善型邻居",
+    "defensive": "容易辩解、说话带刺但尚理性的防御型邻居",
+    "avoidant": "不太想谈、回答简短敷衍的回避型邻居",
+    "cooperative": "通情达理、愿意配合解决的合作型邻居",
+}
+
+_SIM_CAT_LABEL = {
+    "noise": "噪音", "parking": "停车", "pet": "宠物", "renovation": "装修施工",
+    "leak": "漏水", "garbage": "卫生/垃圾", "public_space": "公共区域",
+    "wechat": "微信群", "other": "其他",
+}
+
+
+def _parse_llm_json(text: str) -> dict:
+    """从 LLM 输出中提取 JSON（兼容代码围栏、前后缀杂音）"""
+    import json as _json
+    import re as _re
+    clean = (text or "").strip()
+    if clean.startswith("```"):
+        clean = clean.split("\n", 1)[-1] if "\n" in clean else clean[3:]
+    if clean.endswith("```"):
+        clean = clean[:-3]
+    clean = clean.strip()
+    try:
+        return _json.loads(clean)
+    except _json.JSONDecodeError:
+        m = _re.search(r"\{[\s\S]*\}", clean)
+        if not m:
+            raise ValueError("LLM 输出中未找到 JSON")
+        return _json.loads(m.group(0))
+
+
+def _llm_round_feedback(case, style, user_text, counterpart_reply, conversation):
+    """LLM 驱动的逐轮教练评估；任何失败返回 None，由调用方降级到规则引擎。"""
+    if not LLM_ENABLED:
+        return None
+    style_desc = _SIM_STYLE_DESC.get(style, "普通邻居")
+    cat_label = _SIM_CAT_LABEL.get(case.category or "other", "邻里问题")
+    system = f"""你是邻里纠纷调解平台「邻光」的沟通训练教练。用户正在模拟训练中练习与邻居沟通，对方邻居是 AI 扮演的{style_desc}。
+请根据用户本轮表达与对方的回应，对用户本轮的表达给出教练评估。
+
+评分维度（0-10 分，保留一位小数）：
+- 加分：描述可观察的事实而不评判指责；用「我」表达自身感受和具体影响；提出明确、小而可行的请求；语气冷静友善
+- 扣分：绝对化表述（总是/每次/从不）；指责、辱骂、贴标签；情绪化攻击；威胁或激化矛盾
+
+输出要求：
+- suggestions：1-3 条，先肯定做得好的点（如有），再指出最有价值的改进点，每条 30 字以内，必须结合本轮具体内容，禁止空泛套话
+- improved_version：若本轮表达有优化空间，给出口语自然、100 字以内的改写；若原表达已经很好，返回 null
+
+只输出 JSON 对象，不要任何解释或代码围栏：
+{{"score": <0-10的数字>, "suggestions": [<字符串>], "improved_version": <字符串或null>}}"""
+    prior = conversation[:-2] if len(conversation) >= 2 else []
+    ctx_lines = "\n".join(
+        ("用户：" if m.get("role") == "user" else "邻居：") + str(m.get("content", ""))
+        for m in prior[-8:]
+    ) or "（这是第一轮对话）"
+    user_payload = f"""案例背景：{case.description or '未提供'}（问题分类：{cat_label}）
+
+此前的对话记录：
+{ctx_lines}
+
+本轮用户表达：{user_text}
+本轮对方回应：{counterpart_reply}"""
+    for attempt in range(2):
+        try:
+            msgs = [{"role": "system", "content": system}, {"role": "user", "content": user_payload}]
+            if attempt > 0:
+                msgs.append({"role": "system", "content": "请严格按照要求只输出 JSON 对象，不要包含任何解释、前缀或 markdown 代码块。"})
+            result = _parse_llm_json(llm_chat_messages(msgs, temperature=0.4, max_tokens=600))
+            score = float(result.get("score", 5))
+            score = max(0.0, min(10.0, score))
+            suggestions = [s.strip() for s in (result.get("suggestions") or []) if isinstance(s, str) and s.strip()][:4]
+            if not suggestions:
+                suggestions = ["表达平稳，继续保持冷静和客观的语气"]
+            improved = result.get("improved_version")
+            if improved is not None and (not isinstance(improved, str) or not improved.strip()):
+                improved = None
+            return {"score": round(score, 1), "suggestions": suggestions, "improved_version": improved}
+        except Exception as e:
+            print(f"[AI] round-feedback LLM attempt {attempt + 1} failed: {e}")
+    return None
+
+
+def _llm_final_summary(case, style, conversation, history):
+    """LLM 驱动的会话结算：整体反馈要点 + 最终沟通版本；失败返回 None 走规则引擎。"""
+    if not LLM_ENABLED or not history:
+        return None
+    style_desc = _SIM_STYLE_DESC.get(style, "普通邻居")
+    cat_label = _SIM_CAT_LABEL.get(case.category or "other", "邻里问题")
+    system = """你是邻里纠纷调解平台「邻光」的沟通训练教练。用户刚完成一次模拟训练，请根据完整对话与逐轮评分生成会话结算。
+
+输出要求：
+- feedback：3-6 条整体反馈要点，结合本次对话的具体内容，覆盖做得好的地方、最需要改进的点、以及面对这类邻居的实战提醒，每条 40 字以内
+- final_version：一段用户可直接用于现实沟通的完整话术，结合案例背景和本次训练的改进要点，包含开场、陈述事实、表达感受、提出请求、友好收尾，口语自然，150-250 字，不要出现【开场】等结构标记
+
+只输出 JSON 对象，不要任何解释或代码围栏：
+{"feedback": [<字符串>], "final_version": <字符串>}"""
+    transcript = "\n".join(
+        ("用户：" if m.get("role") == "user" else "邻居：") + str(m.get("content", ""))
+        for m in conversation[-20:]
+    )
+    round_scores = "；".join(
+        f"第{h.get('round', i + 1)}轮 {h.get('score', '-')}" for i, h in enumerate(history)
+    )
+    user_payload = f"""案例背景：{case.description or '未提供'}（问题分类：{cat_label}）
+对方邻居设定：{style_desc}
+逐轮评分：{round_scores}
+
+完整对话记录：
+{transcript}"""
+    for attempt in range(2):
+        try:
+            msgs = [{"role": "system", "content": system}, {"role": "user", "content": user_payload}]
+            if attempt > 0:
+                msgs.append({"role": "system", "content": "请严格按照要求只输出 JSON 对象，不要包含任何解释、前缀或 markdown 代码块。"})
+            result = _parse_llm_json(llm_chat_messages(msgs, temperature=0.6, max_tokens=900))
+            feedback = [s.strip() for s in (result.get("feedback") or []) if isinstance(s, str) and s.strip()][:6]
+            final_version = result.get("final_version")
+            if not feedback or not isinstance(final_version, str) or not final_version.strip():
+                raise ValueError("LLM 结算输出缺少 feedback 或 final_version")
+            return {"feedback": feedback, "final_version": final_version.strip()}
+        except Exception as e:
+            print(f"[AI] final-summary LLM attempt {attempt + 1} failed: {e}")
+    return None
+
+
 @app.post("/api/cases/{case_id}/simulations/{sim_id}/messages")
 def send_simulation_message(case_id: int, sim_id: int, body: SimulationMessage, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     case = db.query(Case).filter(Case.id == case_id).first()
@@ -927,16 +1057,23 @@ def send_simulation_message(case_id: int, sim_id: int, body: SimulationMessage, 
         history = existing.get("history", [])
         rounds = len(history)
         avg = round(sum(h.get("score", 5.0) for h in history) / rounds, 1) if rounds else 5.0
-        merged: List[str] = []
-        for h in history:
-            for s in (h.get("suggestions") or []):
-                if s not in merged:
-                    merged.append(s)
-        if not merged:
-            merged = ["整体表达平稳，继续保持冷静和客观的语气"]
-        final_version = build_final_version(case.description, case.category)
+        # 优先 LLM 驱动的结算（结合完整对话生成整体反馈与最终沟通版本），失败降级规则引擎
+        llm_final = _llm_final_summary(case, sim.counterpart_style, conversation, history)
+        if llm_final:
+            merged: List[str] = llm_final["feedback"]
+            final_version = llm_final["final_version"]
+        else:
+            merged = []
+            for h in history:
+                for s in (h.get("suggestions") or []):
+                    if s not in merged:
+                        merged.append(s)
+            if not merged:
+                merged = ["整体表达平稳，继续保持冷静和客观的语气"]
+            final_version = build_final_version(case.description, case.category)
         sim.score = avg
-        sim.feedback = {"history": history, "avg_score": avg, "final": True}
+        sim.feedback = {"history": history, "avg_score": avg, "final": True,
+                        "final_source": "llm" if llm_final else "rule"}
         db.commit()
         db.refresh(sim)
         add_audit_log(db, current_user.id, "end_simulation", "simulation", sim.id, {"score": avg, "rounds": rounds})
@@ -970,29 +1107,37 @@ def send_simulation_message(case_id: int, sim_id: int, body: SimulationMessage, 
         counterpart_reply = "好的，我听到了，我会考虑的。"
     counterpart_msg = {"role": "counterpart", "content": counterpart_reply, "timestamp": datetime.utcnow().isoformat()}
     conversation.append(counterpart_msg)
-    score = 5.0
-    suggestions: List[str] = []
-    if any(w in uc for w in ["请", "谢谢", "理解", "商量", "希望"]):
-        score += 2.0
-        suggestions.append("使用了礼貌用语，态度友善")
-    if any(w in uc for w in ["总是", "每次", "一直", "从不"]):
-        score -= 1.5
-        suggestions.append("避免使用绝对化表述（如'总是''每次'），这容易引发对方防御")
-    if len(uc) > 20:
-        score += 0.5
-    if "我" in uc and ("觉得" in uc or "感受" in uc or "希望" in uc):
-        score += 1.5
-        suggestions.append("使用了'我'开头的表达方式，很好")
-    if "你" in uc and any(w in uc for w in ["不对", "错", "问题"]):
-        score -= 1.0
-        suggestions.append("尝试减少指责性语言，改用描述事实的方式")
-    if not suggestions:
-        suggestions.append("表达平稳，继续保持冷静和客观的语气")
-    score = max(0.0, min(10.0, score))
-    # PRD 11.6: 每轮表达获得具体反馈和优化版本
-    improved = improve_expression(uc)
+    # 优先 LLM 驱动的逐轮教练评估（真实理解语境），失败降级规则引擎
+    llm_fb = _llm_round_feedback(case, style, uc, counterpart_reply, conversation)
+    if llm_fb:
+        score = llm_fb["score"]
+        suggestions: List[str] = llm_fb["suggestions"]
+        improved = llm_fb["improved_version"]
+        fb_source = "llm"
+    else:
+        score = 5.0
+        suggestions = []
+        if any(w in uc for w in ["请", "谢谢", "理解", "商量", "希望"]):
+            score += 2.0
+            suggestions.append("使用了礼貌用语，态度友善")
+        if any(w in uc for w in ["总是", "每次", "一直", "从不"]):
+            score -= 1.5
+            suggestions.append("避免使用绝对化表述（如'总是''每次'），这容易引发对方防御")
+        if len(uc) > 20:
+            score += 0.5
+        if "我" in uc and ("觉得" in uc or "感受" in uc or "希望" in uc):
+            score += 1.5
+            suggestions.append("使用了'我'开头的表达方式，很好")
+        if "你" in uc and any(w in uc for w in ["不对", "错", "问题"]):
+            score -= 1.0
+            suggestions.append("尝试减少指责性语言，改用描述事实的方式")
+        if not suggestions:
+            suggestions.append("表达平稳，继续保持冷静和客观的语气")
+        score = max(0.0, min(10.0, score))
+        improved = improve_expression(uc)
+        fb_source = "rule"
     round_num = len([m for m in conversation if m["role"] == "user"])
-    feedback = {"score": round(score, 1), "suggestions": suggestions, "round": round_num, "improved_version": improved}
+    feedback = {"score": round(score, 1), "suggestions": suggestions, "round": round_num, "improved_version": improved, "source": fb_source}
     existing = sim.feedback if isinstance(sim.feedback, dict) else {}
     history = existing.get("history", []) if not existing.get("final") else []
     history.append(feedback)
@@ -1573,46 +1718,59 @@ def ai_chat_submit(data: dict, current_user: User = Depends(get_current_user)):
     for msg in messages[-15:]:
         full_messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
 
-    try:
-        result_text = llm_chat_messages(full_messages, temperature=0.7, max_tokens=1000)
+    def _parse_submit_json(text: str) -> dict:
+        """从 LLM 输出中提取 JSON（兼容代码围栏、前后缀、思考前缀）"""
         import json as _json
         import re as _re
-        clean = result_text.strip()
+        clean = (text or "").strip()
         # 去掉 markdown 代码围栏
         if clean.startswith("```"):
             clean = clean.split("\n", 1)[-1] if "\n" in clean else clean[3:]
         if clean.endswith("```"):
             clean = clean[:-3]
         clean = clean.strip()
-        # 容错：从文本中提取第一个 JSON 对象（防止 LLM 输出多余前后缀）
         try:
-            result = _json.loads(clean)
+            return _json.loads(clean)
         except _json.JSONDecodeError:
             m = _re.search(r"\{[\s\S]*\}", clean)
             if not m:
                 raise ValueError("LLM 输出中未找到 JSON")
-            result = _json.loads(m.group(0))
+            return _json.loads(m.group(0))
 
-        reply = result.get("reply") or ""
-        if not reply:
-            raise ValueError("LLM 输出缺少 reply 字段")
-        suggestions = result.get("action_suggestions") or []
-        if not isinstance(suggestions, list):
-            suggestions = []
-        return {
-            "reply": reply,
-            "ready_to_create": result.get("stage") == "ready",
-            "case_title": result.get("case_title"),
-            "case_summary": result.get("case_summary"),
-            "category": result.get("category", "other"),
-            "action_suggestions": suggestions[:3],
-        }
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"[AI] chat-submit LLM failed, using smart fallback: {e}")
-        # 降级：规则引擎智能兜底（针对性回复 + 表情 + 行动建议）
-        return _chat_submit_fallback(messages, user_input)
+    last_err = None
+    # 最多尝试 2 次：第一次正常请求，失败后追加强制 JSON 提醒重试
+    for attempt in range(2):
+        try:
+            msgs = list(full_messages)
+            if attempt > 0:
+                msgs.append({"role": "system", "content": "请严格按照要求只输出 JSON 对象，不要包含任何解释、前缀或 markdown 代码块。"})
+            result_text = llm_chat_messages(msgs, temperature=0.7, max_tokens=1000)
+            result = _parse_submit_json(result_text)
+
+            reply = result.get("reply") or ""
+            if not reply:
+                raise ValueError("LLM 输出缺少 reply 字段")
+            suggestions = result.get("action_suggestions") or []
+            if not isinstance(suggestions, list):
+                suggestions = []
+            return {
+                "reply": reply,
+                "ready_to_create": result.get("stage") == "ready",
+                "case_title": result.get("case_title"),
+                "case_summary": result.get("case_summary"),
+                "category": result.get("category", "other"),
+                "action_suggestions": suggestions[:3],
+            }
+        except Exception as e:
+            last_err = e
+            print(f"[AI] chat-submit LLM attempt {attempt + 1} failed: {e}")
+            continue
+
+    # 降级：规则引擎智能兜底（针对性回复 + 表情 + 行动建议）
+    import traceback
+    traceback.print_exc()
+    print(f"[AI] chat-submit LLM failed, using smart fallback: {last_err}")
+    return _chat_submit_fallback(messages, user_input)
 
 
 # ================================================================================

@@ -3,7 +3,8 @@
     <header class="top-bar">
       <button @click="$router.back()" class="btn-back">&larr; 返回</button>
       <h1>模拟训练</h1>
-      <span class="header-spacer"></span>
+      <button v-if="phase === 'chat'" class="btn-end-session" @click="endSession">结束会话</button>
+      <span v-else class="header-spacer"></span>
     </header>
 
     <!-- Critical-risk safety block -->
@@ -141,9 +142,6 @@
         </button>
       </div>
 
-      <div v-if="userMsgCount >= 6" class="end-bar">
-        <button class="btn-end" @click="endSimulation">结束模拟</button>
-      </div>
     </main>
 
     <!-- Post-simulation results -->
@@ -454,6 +452,23 @@ function endSimulation() {
   phase.value = 'result'
 }
 
+// 顶部「结束会话」：随时可结束；未产生对话则回到选择页
+function endSession() {
+  if (isRecording.value && recognition) {
+    recognition.stop()
+  }
+  if (userMsgCount.value === 0) {
+    phase.value = 'setup'
+    conversation.value = []
+    simId.value = null
+    inputText.value = ''
+    currentTip.value = ''
+    toast.success('会话已结束')
+    return
+  }
+  endSimulation()
+}
+
 function restart() {
   phase.value = 'setup'
   conversation.value = []
@@ -585,7 +600,7 @@ function parseFeedback(feedback) {
   flex-direction: column;
 }
 
-/* Header */
+/* Header（固定标题栏：滚动时始终可见） */
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -594,6 +609,9 @@ function parseFeedback(feedback) {
   background: var(--ng-bg-card);
   border-bottom: 1px solid var(--ng-border);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 .btn-back {
   background: none;
@@ -615,6 +633,26 @@ function parseFeedback(feedback) {
 }
 .header-spacer {
   width: 40px;
+}
+/* 结束会话按钮（固定在标题栏右侧） */
+.btn-end-session {
+  background: var(--ng-bg-card);
+  border: 1.5px solid var(--ng-risk-red);
+  color: var(--ng-risk-red);
+  border-radius: var(--ng-radius-pill);
+  font-size: var(--ng-fs-aux);
+  font-weight: var(--ng-fw-title);
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--ng-dur-fast) var(--ng-ease);
+}
+.btn-end-session:hover {
+  background: var(--ng-risk-red);
+  color: var(--ng-text-inverse);
+}
+.btn-end-session:active {
+  transform: scale(0.96);
 }
 
 /* ========== Blocked Phase (red risk) ========== */
@@ -1110,32 +1148,6 @@ function parseFeedback(feedback) {
   box-shadow: none;
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* End bar */
-.end-bar {
-  padding: var(--ng-space-2) var(--ng-space-4) var(--ng-card-gap);
-  background: var(--ng-bg-card);
-  flex-shrink: 0;
-}
-.btn-end {
-  width: 100%;
-  background: var(--ng-bg-card);
-  color: var(--ng-primary);
-  border: 2px solid var(--ng-primary);
-  border-radius: var(--ng-radius-btn);
-  padding: var(--ng-card-gap);
-  font-size: var(--ng-fs-body);
-  font-weight: var(--ng-fw-title);
-  cursor: pointer;
-  transition: all var(--ng-dur-fast) var(--ng-ease);
-}
-.btn-end:hover {
-  background: var(--ng-primary);
-  color: var(--ng-text-inverse);
-}
-.btn-end:active {
-  transform: scale(0.98);
 }
 
 /* ========== Result Phase ========== */
